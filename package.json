@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "custom-select": "^1.1.15",
+    "firebase": "^11.9.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-select": "^5.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
