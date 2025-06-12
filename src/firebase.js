@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA2nZFBhiXMHqdXUgeFmHBSst17qw_MHVY",
-  authDomain: "quotekeeper-5eae1.firebaseapp.com",
-  projectId: "quotekeeper-5eae1",
-  storageBucket: "quotekeeper-5eae1.firebasestorage.app",
-  messagingSenderId: "701273647635",
-  appId: "1:701273647635:web:ad49d577aa6de158e9ade6"
-};
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+}
 
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)

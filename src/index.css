@@ -66,8 +66,9 @@ button:focus-visible {
 
 /* Quote Form Styles */
 .quote-form-container {
-  padding: 1rem 2rem;
-  width: 467px;
+  padding: 1rem 1.25rem;
+  width: 100%;
+  max-width: 500px;
   margin: 1.5rem auto;
   background: #fff;
   border-radius: 1rem;
@@ -86,8 +87,10 @@ button:focus-visible {
 }
 
 .quote-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: bold;
+  text-align: center;
+  flex: 1;
 }
 
 .quote-form {
@@ -113,8 +116,8 @@ button:focus-visible {
 
 .quote-form-buttons {
   display: flex;
-  gap: 0.5rem;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .quote-button,
@@ -139,3 +142,9 @@ button:focus-visible {
   background-color: #000;
 }
 
+@media (min-width: 500px) {
+  .quote-form-buttons {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
