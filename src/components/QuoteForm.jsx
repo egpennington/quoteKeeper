@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { collection, addDoc } from 'firebase/firestore'
+import { db } from '../firebase'
 import TagSelect from './TagSelect'
 
 export default function QuoteForm() {
@@ -6,8 +8,9 @@ export default function QuoteForm() {
   const [author, setAuthor] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+
     const newQuote = {
       quote,
       author,
@@ -15,8 +18,17 @@ export default function QuoteForm() {
       createdAt: new Date().toISOString()
     }
 
-    console.log('Quote saved:', newQuote)
-    // TODO: connect to Firebase save
+      try {
+        await addDoc(collection(db, 'quotes'), newQuote)
+        console.log('Quote saved to Firebase:', newQuote)
+        // Clear form (optional)
+        setQuote('')
+        setAuthor('')
+        setSelectedTags([])
+      } catch (err) {
+        console.error('Error saving to Firebase:', err)
+      }
+      console.log("quote", newQuote)
   }
 
   return (
@@ -41,7 +53,7 @@ export default function QuoteForm() {
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
         />
-        
+
         <TagSelect selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
 
         <div className="quote-form-buttons">
