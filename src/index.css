@@ -272,3 +272,18 @@ button:focus-visible {
 .edit-form .cancel-button:hover {
   background-color: #d32f2f;
 }
+
+.quote-search-bar {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.quote-search-bar input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
