@@ -155,3 +155,46 @@ button:focus-visible {
   width: 100%;
 }
 
+/* Quote Library Styles */
+.quote-library-container {
+  padding: 1rem 2rem;
+  max-width: 600px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quote-library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-button {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.quote-list {
+  list-style: none;
+  padding: 0;
+}
+
+.quote-card {
+  background: #f9f9f9;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.quote-card:hover {
+  box-shadow: 0 4px 7px rgba(1,1,1,1.05);
+}
+
+

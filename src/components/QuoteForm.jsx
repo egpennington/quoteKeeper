@@ -3,7 +3,7 @@ import { collection, addDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import TagSelect from './TagSelect'
 
-export default function QuoteForm() {
+export default function QuoteForm( {onShowLibrary} ) {
   const [quote, setQuote] = useState('')
   const [source, setSource] = useState('')
   const [author, setAuthor] = useState('')
@@ -87,12 +87,15 @@ export default function QuoteForm() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
-        )}
-        
+        )}        
 
         <div className="quote-form-buttons">
           <button type="submit" className="quote-button">+ Quote</button>
-          <button type="button" className="tag-button">🔍 Q Library</button>
+          <button 
+            type="button" 
+            className="tag-button"
+            onClick={onShowLibrary}
+          >🔍 Q Library</button>
         </div>
       </form>
     </div>
