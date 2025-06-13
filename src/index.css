@@ -148,3 +148,10 @@ button:focus-visible {
     justify-content: space-between;
   }
 }
+
+.notes-textarea {
+  transition: all 0.3s ease-in-out;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
