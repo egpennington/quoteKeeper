@@ -187,14 +187,88 @@ button:focus-visible {
 
 .quote-card {
   background: #f9f9f9;
-  border-radius: 0.75rem;
   padding: 1rem;
-  margin: 1rem 0;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.edit-button {
+  position: absolute;
+  top: 1rem;
+  right: 0.75rem;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: bold;
+  color: #e76f51;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+  border: 1px solid #333;
+  background-color: #f8f8f8;
+  transform: scale(1.03);
+  transition: all 0.2s ease-in-out;
 }
 
 .quote-card:hover {
-  box-shadow: 0 4px 7px rgba(1,1,1,1.05);
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }
 
+/* Edit Popup Style Card */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
 
+.edit-form textarea,
+.edit-form input {
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  width: 100%;
+  max-width: 95%;
+  margin: 0.25rem 0;  
+}
+
+.edit-form-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.edit-form button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.edit-form .save-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.edit-form .cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.edit-form .save-button:hover {
+  background-color: #45a049;
+}
+
+.edit-form .cancel-button:hover {
+  background-color: #d32f2f;
+}
