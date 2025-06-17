@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
+const [sortOption, setSortOption] = useState('Newest')
+
 export default function QuoteLibrary({ onBack }) {
   const [quotes, setQuotes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -12,7 +14,6 @@ export default function QuoteLibrary({ onBack }) {
     source: '',
     notes: '',
     isLiked: false
-
   })
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -50,7 +51,6 @@ export default function QuoteLibrary({ onBack }) {
       console.error('Failed to like quote:', err)
     }
   }
-
 
   const handleEdit = (quote) => {
     setEditingQuote(quote.id)
@@ -125,13 +125,24 @@ export default function QuoteLibrary({ onBack }) {
               </button>
 
               {editingQuote === q.id ? (
-                <form className="edit-form" onSubmit={(e) => { e.preventDefault(); handleSave(q.id) }}>
+                <form 
+                  className="edit-form" 
+                  onSubmit={(e) => { e.preventDefault(); handleSave(q.id) }}
+                >
                   <textarea
                     value={editFields.quote}
                     onChange={(e) => setEditFields({ ...editFields, quote: e.target.value })}
                     placeholder="Edit quote"
                     rows={3}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSave(q.id)
+                      }
+                    }}
                   />
+                  <p className="input-hint">Press <kbd>Enter</kbd> to save, <kbd>Shift + Enter</kbd> for a new line</p>
+
                   <input
                     type="text"
                     value={editFields.author}
@@ -149,7 +160,15 @@ export default function QuoteLibrary({ onBack }) {
                     onChange={(e) => setEditFields({ ...editFields, notes: e.target.value })}
                     placeholder="Edit notes"
                     rows={2}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSave(q.id)
+                      }
+                    }}
                   />
+                  <p className="input-hint">Press <kbd>Enter</kbd> to save, <kbd>Shift + Enter</kbd> for a new line</p>
+
                   <div className="edit-form-buttons">
                     <button type="submit" className="save-button">💾 Save</button>
                     <button type="button" className="cancel-button" onClick={() => setEditingQuote(null)}>❌ Cancel</button>
