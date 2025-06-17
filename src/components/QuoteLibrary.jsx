@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
 export default function QuoteLibrary({ onBack }) {
@@ -53,6 +53,18 @@ export default function QuoteLibrary({ onBack }) {
       setEditingQuote(null)
     } catch (err) {
       console.error('Failed to update quote:', err)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this quote?')) {
+      try {
+        await deleteDoc(doc(db, 'quotes', id))
+        setQuotes(prev => prev.filter(q => q.id !== id))
+        console.log(`Quote ${id} deleted`)
+      } catch (err) {
+        console.error('Error deleting quote:', err)
+      }
     }
   }
 
@@ -117,14 +129,15 @@ export default function QuoteLibrary({ onBack }) {
                   </div>
                 </form>
               ) : (
-                <>
-                  <button className="edit-button" onClick={() => handleEdit(q)}>✏️ Edit</button>
+                <div className="quote-card-buttons">                  
                   <blockquote>"{q.quote}"</blockquote>
                   <p><strong>- {q.author}</strong></p>
                   {q.source && <p><em>Source:</em> {q.source}</p>}
                   {q.tags && <p><em>Tags:</em> {q.tags.join(', ')}</p>}
                   {q.notes && <p><em>Notes:</em> {q.notes}</p>}
-                </>
+                  <button className="edit-button" onClick={() => handleEdit(q)}>✏️ Edit</button>
+                  <button className="delete-button" onClick={() => handleDelete(q.id)}>❌ Delete</button>
+                </div>
               )}
             </li>
           ))}

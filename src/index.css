@@ -197,19 +197,30 @@ button:focus-visible {
 
 .edit-button {
   position: absolute;
-  top: 1rem;
+  bottom: 1rem;
   right: 0.75rem;
   padding: 4px 10px;
   border: 1px solid transparent;
   border-radius: 6px;
   background-color: transparent;
   cursor: pointer;
-  font-weight: bold;
-  color: #e76f51;
+  font-weight: bold;  
   transition: all 0.2s ease;
 }
 
-.edit-button:hover {
+.delete-button {
+  color: #e76f51;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: bold;  
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover,
+.delete-button:hover {
   border: 1px solid #333;
   background-color: #f8f8f8;
   transform: scale(1.03);
