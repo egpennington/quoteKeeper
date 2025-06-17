@@ -227,6 +227,27 @@ button:focus-visible {
   transition: all 0.2s ease-in-out;
 }
 
+.like-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 0;
+}
+
+.like-button {
+  background: none;
+  border: none;
+  color: #e63946;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+  transition: transform 0.1s ease-in-out;
+}
+
+.like-button:hover {
+  transform: scale(1.1);
+}
+
 .quote-card:hover {
   box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);

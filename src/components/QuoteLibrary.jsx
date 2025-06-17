@@ -33,6 +33,22 @@ export default function QuoteLibrary({ onBack }) {
     fetchQuotes()
   }, [])
 
+  const handleLike = async (id, currentLikes) => {
+    try {
+      const quoteRef = doc(db, 'quotes', id)
+      await updateDoc(quoteRef, {
+        likes: currentLikes + 1
+      })
+
+      setQuotes(prev =>
+        prev.map(q => q.id === id ? {...q, likes: (q.likes || 0) + 1 } : q))
+           
+    } catch (err) {
+      console.error('Failed to like quote:', err)
+    }
+  }
+
+
   const handleEdit = (quote) => {
     setEditingQuote(quote.id)
     setEditFields({
@@ -97,6 +113,7 @@ export default function QuoteLibrary({ onBack }) {
         <ul className="quote-list">
           {filteredQuotes.map(q => (
             <li key={q.id} className="quote-card">
+              <button className="like-button" onClick={() => handleLike(q.id, q.likes || 0)}>❤️ {q.likes || 0}</button>
               {editingQuote === q.id ? (
                 <form className="edit-form" onSubmit={(e) => { e.preventDefault(); handleSave(q.id) }}>
                   <textarea
