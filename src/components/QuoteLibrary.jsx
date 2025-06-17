@@ -11,6 +11,8 @@ export default function QuoteLibrary({ onBack }) {
     author: '',
     source: '',
     notes: '',
+    isLiked: false
+
   })
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -37,11 +39,12 @@ export default function QuoteLibrary({ onBack }) {
     try {
       const quoteRef = doc(db, 'quotes', id)
       await updateDoc(quoteRef, {
-        likes: currentLikes + 1
+        likes: currentLikes + 1,
+        isLiked: true
       })
 
       setQuotes(prev =>
-        prev.map(q => q.id === id ? {...q, likes: (q.likes || 0) + 1 } : q))
+        prev.map(q => q.id === id ? {...q, likes: (q.likes || 0) + 1, isLiked: true } : q))
            
     } catch (err) {
       console.error('Failed to like quote:', err)
@@ -56,6 +59,7 @@ export default function QuoteLibrary({ onBack }) {
       author: quote.author,
       source: quote.source || '',
       notes: quote.notes || '',
+      isLiked: quote.isLiked || false
     })
   }
 
@@ -113,7 +117,13 @@ export default function QuoteLibrary({ onBack }) {
         <ul className="quote-list">
           {filteredQuotes.map(q => (
             <li key={q.id} className="quote-card">
-              <button className="like-button" onClick={() => handleLike(q.id, q.likes || 0)}>❤️ {q.likes || 0}</button>
+              <button
+                className={`like-button ${q.isLiked ? 'liked' : ''}`}
+                onClick={() => handleLike(q.id, q.likes || 0)}
+              >
+                {q.isLiked ? '❤️' : '🤍'} {q.likes || 0}
+              </button>
+
               {editingQuote === q.id ? (
                 <form className="edit-form" onSubmit={(e) => { e.preventDefault(); handleSave(q.id) }}>
                   <textarea
