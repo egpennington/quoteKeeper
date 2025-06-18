@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
-
-const [sortOption, setSortOption] = useState('Newest')
+import SortDropdown from './SortDropdown'
 
 export default function QuoteLibrary({ onBack }) {
+  const [sortOption, setSortOption] = useState('newest')
   const [quotes, setQuotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingQuote, setEditingQuote] = useState(null)
@@ -88,15 +88,48 @@ export default function QuoteLibrary({ onBack }) {
     }
   }
 
-  const filteredQuotes = quotes.filter((q) => {
-    const combined = `${q.quote} ${q.author} ${q.source || ''} ${q.notes || ''} ${(q.tags || []).join(' ')}`.toLowerCase()
-    return combined.includes(searchTerm.toLowerCase())
-  })
+  const filteredQuotes = quotes
+    .filter((q) => {
+      const combined = `${q.quote} ${q.author} ${q.source || ''} ${q.notes || ''} ${(q.tags || []).join(' ')}`.toLowerCase();
+      return combined.includes(searchTerm.toLowerCase());
+    })
+    .sort((a, b) => {
+      if (sortOption === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+
+      if (sortOption === 'oldest') {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      }
+
+      if (sortOption === 'authorAZ') {
+  const getLastName = (name) => {
+    if (!name) return '';
+        const parts = name.trim().toLowerCase().split(' ');
+        return parts[parts.length - 1]; // e.g., "Bob Dylan" → "dylan"
+      };
+
+      return getLastName(a.author).localeCompare(getLastName(b.author));
+    } // this should Turn 'Allen Ginsberg' → 'ginsberg' 'Bob Dylan' → 'dylan' Turn 'Heart' → 'heart'   
+
+      if (sortOption === 'quote') {
+        return (a.quote || '').localeCompare(b.quote || '');
+      }
+
+      if (sortOption === 'likes') {
+        return (b.likes || 0) - (a.likes || 0);
+      }
+
+      return 0;
+  });
+  console.log('Sort option is:', sortOption);
+
 
   return (
     <div className="quote-library-container">
       <div className="quote-library-header">
         <h2>📚 Quote Library</h2>
+        <SortDropdown sortOption={sortOption} setSortOption={setSortOption} />
         <button className="back-button" onClick={onBack}>X Close</button>
       </div>
 
@@ -108,6 +141,8 @@ export default function QuoteLibrary({ onBack }) {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+
+      
 
       {loading ? (
         <p>Loading quotes...</p>
