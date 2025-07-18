@@ -25,6 +25,10 @@ export default function QuoteLibrary({ onBack }) {
           id: doc.id,
           ...doc.data()
         }))
+
+        console.log("📚 Firestore Quotes Array:", data);
+
+
         setQuotes(data)
       } catch (err) {
         console.error('Error fetching quotes:', err)
