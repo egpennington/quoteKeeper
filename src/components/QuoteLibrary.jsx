@@ -45,7 +45,7 @@ export default function QuoteLibrary({ onBack }) {
       const quoteRef = doc(db, 'quotes', id)
       await updateDoc(quoteRef, {
         likes: currentLikes + 1,
-        isLiked: true
+        
       })
 
       setQuotes(prev =>
