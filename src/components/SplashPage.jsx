@@ -7,7 +7,7 @@ function SplashPage({ onEnter }) {
       <p className="motto">
         "One quote can change a moment.
       </p>
-      <p className="moto">A library of them can change a life."
+      <p className="motto">A library of them can change a life."
       </p>
       <button className="enter-btn" onClick={onEnter}>
         Enter the Library
