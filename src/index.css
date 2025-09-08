@@ -2,6 +2,14 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+
+  --max-width: 320px;
+  --element-padding: 0.8em;
+  --element-border-radius: 5px;
+  --btn-height: 5px;
+  --sm-btn-height: 2px;
+  --primary-font: 'Cabin', sans-serif;
+  --secondary-font: 'Calistoga', sans-serif;
 }
 
 body {
@@ -101,7 +109,6 @@ button:focus-visible {
 
 .quote-textarea,
 .quote-input {
-  width: 100%;
   padding: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 0.5rem;
@@ -176,8 +183,14 @@ button:focus-visible {
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 999px;
+  border-radius: 99px;
   cursor: pointer;
+  width: 30%;
+  text-align: center;
+}
+
+.back-button:hover {
+  opacity: 0.7;
 }
 
 .quote-list {
@@ -188,6 +201,7 @@ button:focus-visible {
 .quote-card {
   background: #f9f9f9;
   padding: 1rem;
+  padding: 1rem 3rem 1rem 1rem;
   border-radius: 0.75rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
@@ -201,7 +215,6 @@ button:focus-visible {
 }
 
 .edit-button {
-  position: absolute;
   bottom: 1rem;
   right: 0.75rem;
   padding: 4px 10px;
@@ -222,6 +235,7 @@ button:focus-visible {
   cursor: pointer;
   font-weight: bold;  
   transition: all 0.2s ease;
+  text-align: right ;
 }
 
 .edit-button:hover,
@@ -232,26 +246,28 @@ button:focus-visible {
   transition: all 0.2s ease-in-out;
 }
 
+.quote-edit-delete-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .like-button {
-  position: absolute;
-  top: 1.5rem;
-  right: 0;
   background: none;
   border: none;
   font-weight: bold;
   cursor: pointer;
   font-size: 1rem;
-  margin-right: 0.5rem;
+  position: absolute;
+  right: 0;
+  top: 0.5;
+  z-index: 1; 
   transition: transform 0.1s ease-in-out;
+  width: 80px;
 }
 
 .like-button:hover {
-  transform: scale(1.1);
-}
-
-.like-button:active {
-  transform: scale(1.3);
-  transition: transform 0.1s ease-in-out;
+  color: red;
 }
 
 .like-button.liked {
@@ -260,6 +276,11 @@ button:focus-visible {
 
 .like-button:not(.liked) {
   color: #ccc;
+}
+
+.blockquote {
+  text-align: left;
+  margin-left: 0;
 }
 
 .input-hint {
@@ -347,7 +368,7 @@ kbd {
 
 /* Splash Page Style */
 .splash-container {
-  height: 100vh;
+  /* height: 100vh; */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -384,3 +405,192 @@ kbd {
 .enter-btn:hover {
   background: #005fa3;
 }
+
+/* Log In form styles */
+.login {
+  margin: none;
+  border: 1px solid #e8ecf1;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.06);
+  padding: 1.25em;
+}
+
+.login .auth-fields-and-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.login .logged-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.login #logged-out-view .logged-container {
+  gap: 2em;
+}
+
+.login input, button {
+  font-family: inherit;
+  padding: 12px 14px;
+  border:  3px solid #d3d9e0;
+  border-radius: var(--element-border-radius);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.1em;
+  text-align: left;
+  
+}
+
+.login input:focus, button:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13,110,253,.15);
+}
+
+.login input {
+  font-weight: 300;
+}
+
+.login input::placeholder {
+  color: #98a3ad;
+  opacity: 1;
+}
+
+.login button {
+  font-weight: 600;
+  width: 100%;
+}
+
+.login button:hover {
+  cursor: pointer;
+}
+
+.login .primary-btn {
+  background: #ffde00;
+  box-shadow: 0px var(--btn-height) 0px 0px #000;
+  box-shadow: 0 4px 0 #000;
+  position: relative;
+  border-color: #d2b800;
+  border-radius: 10px;
+}
+
+.login .primary-btn:hover {
+  top: var(--btn-height);
+  box-shadow: none;
+  border-color: #d2b800;
+}
+
+
+.login .secondary-btn {
+  padding: 0.4em;
+  background: transparent;
+  background: #fff;
+  color: #222;
+  border-color: #d3d9e0;
+}
+
+.login .secondary-btn:hover {
+  color:#fff;
+  background: #111;
+  border-color: #111;
+}
+
+.login .provider-btn {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #3c4043;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  width: 100%;  
+}
+
+.login .provider-btn:hover {
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+.google-btn-logo {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 480px){
+  .login { padding: 1em; border-radius: 10px; }
+}
+
+/* Optional: dark mode */
+@media (prefers-color-scheme: dark){
+  .login { background:#121722; border-color:#273142; box-shadow: none; }
+  .login input, .login button { background:#161c28; border-color:#2b3545; color:#e8eef6; }
+  .login .provider-btn { background:#161c28; border-color:#2b3545; color:#dbe2ea; }
+}
+
+/* Auth header */
+.app-header {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto .75rem;
+  padding: .5rem .75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+.app-header span{
+  padding: .3rem .6rem;
+  border-radius: 9999px;
+  background: #f8fafc;
+  border: 1px solid rgba(0,0,0,.06);
+  font-weight: 600;
+  font-size: .9rem;
+  color: #1f2937;
+}
+
+.app-header button{
+  appearance: none;
+  background: transparent;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  padding: .5rem .9rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: background .15s ease, box-shadow .15s ease, transform .06s ease;
+}
+.app-header button:hover{ 
+  background: #f9fafb;
+  
+  border: 1px solid #c2185b;
+}
+
+.app-header button:active { transform: translateY(1px); }
+
+.app-header > button:focus-visible,
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255,212,0,.35);
+  border-color: #f2c100;
+}
+
+@media (max-width: 480px){
+  .app-header{ flex-direction: column; align-items: stretch; }
+  .app-header button { width: 100%; }
+}
+
+

@@ -63,7 +63,7 @@ export default function QuoteLibrary({ onBack }) {
       author: quote.author,
       source: quote.source || '',
       notes: quote.notes || '',
-      isLiked: quote.isLiked || false
+      isLiked: quote.isLiked || false,
     })
   }
 
@@ -144,9 +144,7 @@ export default function QuoteLibrary({ onBack }) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-      </div>
-
-      
+      </div>      
 
       {loading ? (
         <p>Loading quotes...</p>
@@ -215,13 +213,15 @@ export default function QuoteLibrary({ onBack }) {
                 </form>
               ) : (
                 <div className="quote-card-buttons">                  
-                  <blockquote>"{q.quote}"</blockquote>
+                  <blockquote className="blockquote">"{q.quote}"</blockquote>
                   <p><strong>- {q.author}</strong></p>
                   {q.source && <p><em>Source:</em> {q.source}</p>}
                   {q.tags && <p><em>Tags:</em> {q.tags.join(', ')}</p>}
                   {q.notes && <p><em>Notes:</em> {q.notes}</p>}
-                  <button className="edit-button" onClick={() => handleEdit(q)}>✏️ Edit</button>
-                  <button className="delete-button" onClick={() => handleDelete(q.id)}>❌ Delete</button>
+                  <div className="quote-edit-delete-btn">
+                    <button className="edit-button" onClick={() => handleEdit(q)}>✏️ Edit</button>
+                    <button className="delete-button" onClick={() => handleDelete(q.id)}>❌ Delete</button>
+                  </div>
                 </div>
               )}
             </li>

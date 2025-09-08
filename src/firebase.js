@@ -1,5 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from 'firebase/firestore'
+import { initializeApp } from "firebase/app"
+import { getFirestore } from "firebase/firestore"
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,4 +12,8 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
+export const auth = getAuth(app)
 export const db = getFirestore(app)
+
+// stay signed in across reloads and browser restarts
+setPersistence(auth, browserLocalPersistence).catch(console.error)
