@@ -593,4 +593,15 @@ input:focus, textarea:focus, select:focus {
   .app-header button { width: 100%; }
 }
 
+.appName {
+  display: flex;
+  flex-direction: column;
+}
 
+.count {
+  font-size: 0.6em;
+  font-weight: 400;
+  font-style: italic;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding-left: 1em;
+}

@@ -1,21 +1,21 @@
-import { useState } from "react";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react"
+import { auth } from "../firebase"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 export default function LoginSplash() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [err, setErr] = useState("")
 
   async function handleSignIn(e) {
     e.preventDefault();
     setErr("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged in App.jsx will switch the view to your app
+      // onAuthStateChanged in App.jsx will switch the view to the app
     } catch (error) {
-      setErr(error.code || error.message);
-      console.error(error);
+      setErr(error.code || error.message)
+      console.error(error)
     }
   }
 

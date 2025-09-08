@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, updateDoc, deleteDoc, increment } from 'firebase/firestore'
 import { db } from '../firebase'
 import SortDropdown from './SortDropdown'
 import TagSelect from './TagSelect'
 
-export default function QuoteLibrary({ onBack }) {
+export default function QuoteLibrary({ onBack }) {  
   const [sortOption, setSortOption] = useState('newest')
   const [quotes, setQuotes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,7 +15,6 @@ export default function QuoteLibrary({ onBack }) {
     source: '',
     tags: [],
     notes: '',
-    isLiked: false
   })
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -43,12 +42,12 @@ export default function QuoteLibrary({ onBack }) {
     try {
       const quoteRef = doc(db, 'quotes', id)
       await updateDoc(quoteRef, {
-        likes: currentLikes + 1,
+        likes: increment(1),
         
       })
 
       setQuotes(prev =>
-        prev.map(q => q.id === id ? {...q, likes: (q.likes || 0) + 1, isLiked: true } : q))
+        prev.map(q => q.id === id ? {...q, likes: (q.likes || 0) + 1} : q))
            
     } catch (err) {
       console.error('Failed to like quote:', err)
@@ -63,7 +62,6 @@ export default function QuoteLibrary({ onBack }) {
       source: quote.source || '',
       tags: (quote.tags || []).map(t => ({ value: t, label: t })),
       notes: quote.notes || '',
-      isLiked: quote.isLiked || false,
     })
   }
 
@@ -81,8 +79,7 @@ export default function QuoteLibrary({ onBack }) {
         author: editFields.author || '',
         source: editFields.source || '',
         notes: editFields.notes || '',
-        tags: tagsArray,                 // ← strings in Firestore
-        isLiked: !!editFields.isLiked,
+        tags: tagsArray,
         updatedAt: new Date().toISOString(),
       };
 
@@ -125,6 +122,7 @@ export default function QuoteLibrary({ onBack }) {
       }
 
       if (sortOption === 'authorAZ') {
+
   const getLastName = (name) => {
     if (!name) return '';
         const parts = name.trim().toLowerCase().split(' ');
@@ -146,10 +144,15 @@ export default function QuoteLibrary({ onBack }) {
   });
   console.log('Sort option is:', sortOption);
 
+  const totalNumber = quotes.length
+  const hasSearch = searchTerm.trim().length > 0
+  const shownNumber = filteredQuotes.length
+  const headerCount = hasSearch ? `${shownNumber} of ${totalNumber}` : `${totalNumber}`
+
   return (
     <div className="quote-library-container">
       <div className="quote-library-header">
-        <h2>📚 Quote Library</h2>
+        <h2 className="appName">📚 Quote Library<span className="count"># of quotes: {loading ? '..' : headerCount}</span></h2>
         <SortDropdown sortOption={sortOption} setSortOption={setSortOption} />
         <button className="back-button" onClick={onBack}>X Close</button>
       </div>
@@ -172,11 +175,11 @@ export default function QuoteLibrary({ onBack }) {
           {filteredQuotes.map(q => (
             <li key={q.id} className="quote-card">
               <button
-                className={`like-button ${q.isLiked ? 'liked' : ''}`}
-                onClick={() => handleLike(q.id, q.likes || 0)}
+                className={`like-button ${(q.likes ?? 0) > 0 ? 'liked' : ''}`}
+                onClick={() => handleLike(q.id, q.likes ?? 0)}
               >
-                {q.isLiked ? '❤️' : '🤍'} {q.likes || 0}
-              </button>
+                {(q.likes ?? 0) > 0 ? '❤️' : '🤍'} {q.likes ?? 0}
+              </button>              
 
               {editingQuote === q.id ? (
                 <form 
