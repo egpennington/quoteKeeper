@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import SortDropdown from './SortDropdown'
+import TagSelect from './TagSelect'
 
 export default function QuoteLibrary({ onBack }) {
   const [sortOption, setSortOption] = useState('newest')
@@ -12,6 +13,7 @@ export default function QuoteLibrary({ onBack }) {
     quote: '',
     author: '',
     source: '',
+    tags: [],
     notes: '',
     isLiked: false
   })
@@ -25,9 +27,6 @@ export default function QuoteLibrary({ onBack }) {
           id: doc.id,
           ...doc.data()
         }))
-
-        console.log("📚 Firestore Quotes Array:", data);
-
 
         setQuotes(data)
       } catch (err) {
@@ -62,6 +61,7 @@ export default function QuoteLibrary({ onBack }) {
       quote: quote.quote,
       author: quote.author,
       source: quote.source || '',
+      tags: (quote.tags || []).map(t => ({ value: t, label: t })),
       notes: quote.notes || '',
       isLiked: quote.isLiked || false,
     })
@@ -69,16 +69,34 @@ export default function QuoteLibrary({ onBack }) {
 
   const handleSave = async (id) => {
     try {
-      const quoteRef = doc(db, 'quotes', id)
-      await updateDoc(quoteRef, editFields)
+      const quoteRef = doc(db, 'quotes', id);
+
+      // normalize tags to array of strings (handles both objects and pre-string arrays)
+      const tagsArray = Array.isArray(editFields.tags)
+        ? editFields.tags.map(t => (typeof t === 'string' ? t : t.value)).filter(Boolean)
+        : [];
+
+      const payload = {
+        quote: editFields.quote,
+        author: editFields.author || '',
+        source: editFields.source || '',
+        notes: editFields.notes || '',
+        tags: tagsArray,                 // ← strings in Firestore
+        isLiked: !!editFields.isLiked,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(quoteRef, payload);
+
       setQuotes(prev =>
-        prev.map(q => (q.id === id ? { ...q, ...editFields } : q))
-      )
-      setEditingQuote(null)
+        prev.map(q => (q.id === id ? { ...q, ...payload } : q))
+      );
+
+      setEditingQuote(null);
     } catch (err) {
-      console.error('Failed to update quote:', err)
+      console.error('Failed to update quote:', err);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this quote?')) {
@@ -127,7 +145,6 @@ export default function QuoteLibrary({ onBack }) {
       return 0;
   });
   console.log('Sort option is:', sortOption);
-
 
   return (
     <div className="quote-library-container">
@@ -191,6 +208,12 @@ export default function QuoteLibrary({ onBack }) {
                     value={editFields.source}
                     onChange={(e) => setEditFields({ ...editFields, source: e.target.value })}
                     placeholder="Edit source"
+                  />
+                  <TagSelect
+                    selectedTags={editFields.tags}
+                    setSelectedTags={(tags) =>
+                      setEditFields(prev => ({ ...prev, tags }))
+                    }
                   />
                   <textarea
                     value={editFields.notes}
