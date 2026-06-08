@@ -41,7 +41,7 @@ export default function QuoteForm( {onShowLibrary} ) {
   return (
     <div className="quote-form-container">
       <div className="quote-form-header">
-        <span className="quote-icon">📃</span>
+        <img className="quote-icon" src="/logo.png" alt="Q logo for quoteKeeper" />
         <h1 className="quote-title">Quote Keeper</h1>
       </div>
       <form onSubmit={handleSubmit} className="quote-form">
