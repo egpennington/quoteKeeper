@@ -21,7 +21,7 @@ export default function LoginSplash() {
 
   return (
     <div className="splash-container">
-      <h1 className="title">📚 quoteKeeper</h1>
+      <h1 className="title"><img src="logo.png" alt="Q logo for quoteKeeper app" /> quoteKeeper</h1>
       <p className="motto">
         "One quote can change a moment.<br />
         A library of them can change a life."
