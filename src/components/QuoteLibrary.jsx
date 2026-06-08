@@ -28,6 +28,8 @@ export default function QuoteLibrary({ onBack }) {
         }))
 
         setQuotes(data)
+        // console.log(data)
+
       } catch (err) {
         console.error('Error fetching quotes:', err)
       } finally {
@@ -100,7 +102,7 @@ export default function QuoteLibrary({ onBack }) {
       try {
         await deleteDoc(doc(db, 'quotes', id))
         setQuotes(prev => prev.filter(q => q.id !== id))
-        console.log(`Quote ${id} deleted`)
+        // console.log(`Quote ${id} deleted`)
       } catch (err) {
         console.error('Error deleting quote:', err)
       }
@@ -142,7 +144,7 @@ export default function QuoteLibrary({ onBack }) {
 
       return 0;
   });
-  console.log('Sort option is:', sortOption);
+  // console.log('Sort option is:', sortOption);
 
   const totalNumber = quotes.length
   const hasSearch = searchTerm.trim().length > 0
