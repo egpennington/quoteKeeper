@@ -29,6 +29,20 @@ const tagOptions = [
   { value: 'learning', label: 'Learning' },
   { value: 'vision', label: 'Vision' },
   { value: 'joy', label: 'Joy' },
+  { value: 'creativity', label: 'Creativity'},
+  { value: 'nature', label: 'Nature' },
+  { value: 'art', label: 'Art' },
+  { value: 'reading', label: 'Reading' },
+  { value: 'solitude', label: 'Solitude' },
+  { value: 'beauty', label: 'Beauty' },
+  { value: 'wonder', label: 'Wonder' },
+  { value: 'imagination', label: 'Imagination' },
+  { value: 'discipline', label: 'Discipline' },
+  { value: 'family', label: 'Family' },
+  { value: 'friendship', label: 'Friendship' },
+  { value: 'work', label: 'Work' },
+  { value: 'programming', label: 'Programming' },
+  { value: 'reflection', label: 'Reflection' },
 ]
 
 export default function TagSelect({ selectedTags, setSelectedTags }) {
