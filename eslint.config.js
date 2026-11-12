@@ -30,4 +30,16 @@ export default [
       ],
     },
   },
+  {
+    // Browser test harness (Node scripts driving headless Chrome).
+    files: ['tests/e2e/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+    },
+  },
 ]

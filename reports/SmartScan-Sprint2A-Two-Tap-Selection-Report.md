@@ -2,7 +2,7 @@
 
 **Project:** QuoteKeeper · **Feature:** SmartScan · **Lead Engineer:** CODI (Claude Code) · **QA:** cipherMuse
 **Date:** 2026-11-12 · **Branch:** `feature/smartscan-two-tap-selection`, from `main` @ `e3d360c`
-**Status:** Built and verified on desktop and an emulated phone. **Committed locally. Not merged, pushed, or deployed.** Awaiting QA review and project-lead approval.
+**Status:** Built and verified on desktop and an emulated phone. cipherMuse QA reviewed it. The browser harness has been added to the repository (§11). **Committed locally. Not merged, pushed, or deployed.** Awaiting the project lead's merge and Samsung acceptance testing.
 
 ---
 
@@ -16,7 +16,7 @@ The core flow now works inside QuoteKeeper: **photograph a book page → tap the
 - **Add Quote** opens an editable draft: quote, author, source, tags and notes. It saves to the existing Firestore `quotes` collection with the **exact existing document shape**. Manual entry now builds its documents with the same function, so the two can't drift apart.
 - After saving, you're back on the same photo with the same zoom and position. The saved passage is marked in green. The next draft starts with the same author and source.
 
-**Verification:** lint passes. Build passes. **70/70** automated unit tests pass (new, with no new dependencies). **50/50** browser checks pass in headless Chrome against the real app, with Firebase mocked. **Not yet tested on the Samsung phone** (instructions in §8).
+**Verification:** lint passes. Build passes. **70/70** automated unit tests pass (new, with no new dependencies). **51/51** browser checks pass in headless Chrome against the real app, with Firebase mocked. They're now committed and run with `npm run test:e2e`. **Not yet tested on the Samsung phone** (instructions in §8).
 
 ---
 
@@ -59,7 +59,8 @@ The core flow now works inside QuoteKeeper: **photograph a book page → tap the
 | `src/components/smartscan/selection/readingOrder.js` | Reading order, noise filtering, passage text joining with hyphen healing (pure) |
 | `src/components/smartscan/selection/selection.js` | Two-tap state machine, hit testing, per-line highlight rects (pure) |
 | `src/utils/quoteRecord.js` | The `quotes` document shape, shared by manual entry and SmartScan (pure) |
-| `tests/**` | 70 unit tests plus a synthetic OCR fixture (no book text or photos) |
+| `tests/**/*.test.js`, `tests/fixtures/` | 70 unit tests plus a synthetic OCR fixture (no book text or photos) |
+| `tests/e2e/` | Browser test harness: `run.mjs` (checks), `server.mjs` (mocked dev server), `cdp.mjs` (Chrome driver), `mocks/` (Firebase stand-ins), `README.md` (how to run). Added after QA review (§11) |
 | `reports/SmartScan-Sprint2A-Two-Tap-Selection-Report.md` | This report |
 
 ### Modified
@@ -73,7 +74,8 @@ The core flow now works inside QuoteKeeper: **photograph a book page → tap the
 | `src/components/smartscan/smartscan.css` | Removed the unused preview styles; added the loading screen |
 | `src/components/QuoteForm.jsx` | Builds its document with `persistQuote()`: same fields and order |
 | `src/components/TagSelect.jsx` | Forwards optional extra props (label, menu placement). The default behavior is unchanged |
-| `package.json` | Adds `"test": "node --test \"tests/**/*.test.js\""`. **No dependencies added or changed** |
+| `package.json` | Adds `"test": "node --test \"tests/**/*.test.js\""` and `"test:e2e": "node tests/e2e/run.mjs"`. **No dependencies added or changed** |
+| `eslint.config.js` | Lints the harness's Node `.mjs` files with Node globals |
 
 ### Deleted
 
@@ -136,9 +138,9 @@ Two regressions came up during testing and are now pinned by tests:
 1. **Pinch drift.** The word under your fingers slid about 150 px when pinching from the whole-page view. Clamping on every frame kept re-centring the short page. The fix computes each frame from the gesture's start. I confirmed the new unit test fails against the old code.
 2. **Hit testing at low zoom.** The first version, adapted from GAI, picked the first padded box in reading order. That favoured earlier words when boxes overlapped. It now picks the closest box.
 
-### Browser tests (simulated, not a physical device): 50/50
+### Browser tests (simulated, not a physical device): 51/51
 
-These ran in headless Chrome 390×844 @3x with touch emulation, against the **real `App.jsx`**. Firebase was replaced by a mock that records every write. Gestures are real touch events (`Input.dispatchTouchEvent`), which Chrome turns into pointer events, as on a phone. The page images are the benchmark's synthetic 12 MP pages (original text, with exact word boxes).
+Run with `npm run test:e2e` (see `tests/e2e/README.md`). The original run had 50 checks; the 51st, the real-Firebase request guard, was added in §11. These ran in headless Chrome 390×844 @3x with touch emulation, against the **real `App.jsx`**. Firebase was replaced by a mock that records every write. Gestures are real touch events (`Input.dispatchTouchEvent`), which Chrome turns into pointer events, as on a phone. The page images are the benchmark's synthetic 12 MP pages (original text, with exact word boxes).
 
 - **Header and loading:**
   - The email and Sign out are shown on the main form and hidden in SmartScan, with no sign-out call.
@@ -173,6 +175,7 @@ These ran in headless Chrome 390×844 @3x with touch emulation, against the **re
 - **Landscape phone (844×390):** fills the screen, controls on screen, panel below the photo, overlay aligned.
 - **OCR Lab regression:** still runs with the shared engine (1500×2000 input, 280 words), with word boxes drawn and **no Firestore writes**.
 - **Hygiene:**
+  - No request reached a real Firebase or Google API host (added in §11).
   - No requests leave the app's origin except the existing Google Fonts stylesheet.
   - No page errors, apart from the deliberate simulated save failure, which is logged on purpose.
 
@@ -189,7 +192,7 @@ These ran in headless Chrome 390×844 @3x with touch emulation, against the **re
 
 The selection always covered the intended span. The remaining errors are OCR misreads, which the editable draft exists to fix.
 
-The browser harness (CDP driver, Firebase mocks, scripts) is in my scratch folder, not the repository. I can add it under `tests/e2e/` if you want it kept.
+The browser harness is now committed under `tests/e2e/` (§11).
 
 ### Not tested
 
@@ -312,16 +315,54 @@ Deploying isn't approved, so test over USB the same way as in 2A-0. If you appro
 5. **Accessibility:** keyboard word navigation (arrow keys plus Enter for start and end), or a "select from text" list.
 6. **Shadow-correction A/B benchmark** in the OCR Lab (§6).
 7. **Decide the OCR Lab's future** now that SmartScan uses the same engine: keep it as a diagnostics tool or retire it.
-8. **Add the browser harness to the repository** (`tests/e2e/`), so regressions can be re-checked with one command.
-9. **Pencil-underline suggestions:** a separate sprint, benchmarked first, as planned.
+8. **Pencil-underline suggestions:** a separate sprint, benchmarked first, as planned.
 
 ---
 
 ## 10. Git
 
 - **Branch:** `feature/smartscan-two-tap-selection`, from `main` @ `e3d360c`.
-- **Commit:** `feat(smartscan): two-tap passage selection workspace (Sprint 2A)`.
-- **Not committed:**
-  - `public/ocr/` (generated at build time, gitignored).
-  - The scratch browser harness.
-- **Not merged, pushed or deployed.** Awaiting cipherMuse QA and project-lead approval.
+- **Commits:**
+  1. `31fd5e4` `feat(smartscan): two-tap passage selection workspace (Sprint 2A)`
+  2. `test(e2e): add reusable SmartScan browser test harness`
+- **Not committed:** `public/ocr/` (generated at build time and by the browser harness, gitignored).
+- **Not merged, pushed or deployed.** Awaiting the project lead's merge, then Samsung acceptance testing (§8).
+
+---
+
+## 11. QA follow-up: browser harness added (2026-11-12)
+
+cipherMuse asked for the browser checks to be kept in the repository so they can be re-run in future sprints.
+
+### What was added
+
+- **`tests/e2e/`**, run with **`npm run test:e2e`**. It's self-contained: it starts its own mocked dev server and a headless Chrome with a throwaway profile, runs every check, prints `PASS`/`FAIL` per check, and shuts both down again.
+  - It exits with code 0 only if every check passes.
+  - Verified after a run: the port was released, no Chrome processes were left behind, and the temporary profile was deleted.
+- **`tests/e2e/README.md`** covers requirements (Node 22+, Chrome, optional `CHROME_PATH`, `E2E_PORT`, `E2E_CDP_PORT`), the safety model, the list of checks, and how to add one.
+- **No new dependencies.** The Chrome driver uses Node's built-in `WebSocket`.
+- **Fresh checkouts work.** The harness reuses the app's OCR-assets plugin, so `public/ocr/` is prepared automatically. I verified this by moving `public/ocr/` aside and starting the server: the worker and both models were recreated from the local model cache and served.
+- **ESLint now covers the harness.** The project config only matched `*.js`/`*.jsx`, so the harness's `.mjs` files weren't being linted. They now are, with Node globals (0 problems).
+
+### Firebase stays mocked, and production data can't be touched
+
+- `firebase/app`, `firebase/auth` and `firebase/firestore` are aliased to in-memory mocks. Every write is recorded in the page and lost when the browser closes.
+- The test server reads **no `.env`** (`envDir` is `tests/e2e/`), so the real Firebase configuration never reaches the page. Before, the scratch version still loaded `.env` values, although the mocks ignored them.
+- **New check (51st):** the run fails if any request reaches a Firebase or Google API host. The existing Google Fonts stylesheet is the only allowed outside request.
+- Test photos are the benchmark's synthetic pages. No real book images are used or stored.
+
+### Final results (re-run after all changes, actual)
+
+| Check | Result |
+|---|---|
+| `npm run lint` | **Passes** (0 problems; now includes `tests/e2e/*.mjs`) |
+| `npm test` | **70/70** (17 suites, about 2 s) |
+| `npm run test:e2e` | **51/51**, exit code 0 (OCR ready in 2.3 s on desktop; pinch drift 0.0 px; selection after rotation exact) |
+| `npm run build` | **Passes.** Main bundle 855.5 KB (231.6 KB gzipped), precache 10 entries. Unchanged from §5 |
+| `npm audit` | 27, unchanged (no dependency changes) |
+
+The app code is unchanged since `31fd5e4`. This follow-up only adds test tooling, docs and lint config.
+
+### Still required
+
+Physical Samsung acceptance testing (§8) remains the gate. The browser harness emulates touch and runs desktop-speed OCR. It can't replace real fingers, the real camera, phone OCR speed, or the on-screen keyboard.
