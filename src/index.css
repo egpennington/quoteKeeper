@@ -606,3 +606,52 @@ input:focus, textarea:focus, select:focus {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding-left: 1em;
 }
+
+
+/* Quote Library header button */
+
+.quote-form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quote-form-header .quote-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.quote-form-header .library-header-button {
+  width: auto;
+  min-width: 0;
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border: 1px solid #d6dce0;
+  border-radius: 12px;
+  background: #f8fafb;
+  color: #203342;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.library-header-button:hover {
+  background: #edf2f5;
+}
+
+.library-header-button:focus-visible {
+  outline: 3px solid #83b8d5;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .quote-form-header .library-header-button {
+    padding: 10px;
+  }
+
+  .library-button-text {
+    display: none;
+  }
+}
