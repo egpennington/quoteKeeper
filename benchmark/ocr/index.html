@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:,">
+  <title>SmartScan OCR Benchmark</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #1f2937; background: #f3f4f6; }
+    body { margin: 0 auto; max-width: 760px; padding: 16px; }
+    h1 { font-size: 1.3rem; margin: 0 0 4px; }
+    h2 { font-size: 1.05rem; margin: 0 0 8px; }
+    section { background: #fff; border-radius: 12px; padding: 14px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .muted { color: #6b7280; font-size: .85rem; margin: 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    button, .file-label { font: inherit; font-weight: 600; padding: 10px 14px; min-height: 44px; border-radius: 999px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; }
+    button.primary { background: #333; color: #fff; border-color: #333; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .file-label { display: inline-flex; align-items: center; position: relative; box-sizing: border-box; }
+    .file-label input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    fieldset { border: 1px solid #e5e7eb; border-radius: 8px; margin: 0 0 8px; }
+    label { margin-right: 10px; white-space: nowrap; }
+    ul#samples { list-style: none; padding: 0; margin: 8px 0 0; }
+    .sample { border-top: 1px solid #eee; padding: 8px 0; }
+    .sample-title { font-weight: 600; }
+    .sample textarea { width: 100%; box-sizing: border-box; margin: 6px 0; font: inherit; }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .9rem; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+    th, td { text-align: right; padding: 4px 6px; border-bottom: 1px solid #eee; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    #log { background: #111827; color: #d1fae5; font: 12px/1.4 ui-monospace, monospace; padding: 10px; border-radius: 8px; height: 220px; overflow: auto; white-space: pre-wrap; margin: 0; }
+    #crash { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>SmartScan OCR Benchmark · Sprint 2A-0</h1>
+  <p class="muted" id="device">Detecting device…</p>
+  <p class="muted">Runs entirely on this device. Photos are never uploaded; exported results contain numbers only.</p>
+  <p id="crash" role="alert" hidden></p>
+
+  <section>
+    <h2>1. Download check</h2>
+    <p class="muted">Measures first-use download of the OCR engine and each model over this connection.</p>
+    <div class="row"><button type="button" id="dl">Run download check</button></div>
+  </section>
+
+  <section>
+    <h2>2. Samples <span class="muted" id="sample-count"></span></h2>
+    <div class="row">
+      <button type="button" id="gen">Generate 6 synthetic pages</button>
+      <label class="file-label">Add book photos…
+        <input type="file" id="photos" accept="image/*" multiple>
+      </label>
+    </div>
+    <ul id="samples"></ul>
+  </section>
+
+  <section>
+    <h2>3. Run</h2>
+    <fieldset>
+      <legend>Models</legend>
+      <label><input type="checkbox" name="model" value="fast" checked> fast</label>
+      <label><input type="checkbox" name="model" value="best_int" checked> best_int</label>
+      <label><input type="checkbox" name="model" value="best"> best (diagnostic: fails on SIMD builds)</label>
+    </fieldset>
+    <fieldset>
+      <legend>OCR input size (long edge)</legend>
+      <label><input type="checkbox" name="size" value="1200"> 1200 px</label>
+      <label><input type="checkbox" name="size" value="1600" checked> 1600 px</label>
+      <label><input type="checkbox" name="size" value="2000" checked> 2000 px</label>
+      <label><input type="checkbox" name="size" value="2500" checked> 2500 px</label>
+    </fieldset>
+    <div class="row">
+      <button type="button" class="primary" id="run">Run benchmark</button>
+      <button type="button" id="stop" disabled>Stop</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Results <span class="muted" id="result-count"></span></h2>
+    <div class="table-wrap">
+      <table id="summary">
+        <thead><tr><th>Model</th><th>Size</th><th>Runs</th><th>Median ms</th><th>CER</th><th>WER</th><th>Box hit</th><th>Load ms</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button type="button" id="copy">Copy results</button>
+      <button type="button" id="download">Download results</button>
+      <button type="button" id="clear">Clear results</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Log</h2>
+    <pre id="log" aria-live="polite"></pre>
+  </section>
+
+  <script type="module" src="./bench.js"></script>
+</body>
+</html>

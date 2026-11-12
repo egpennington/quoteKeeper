@@ -25,3 +25,11 @@ dist-ssr
 
 # environment varibles
 .env
+
+# SmartScan OCR benchmark: downloaded models and any real book photos/results
+# (the repository is public; book pages are copyrighted)
+benchmark/ocr/public/
+benchmark/ocr/dist/
+benchmark/ocr/photos/
+benchmark/ocr/results/
+smartscan-ocr-benchmark-*.json
