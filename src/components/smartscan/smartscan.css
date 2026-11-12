@@ -241,6 +241,12 @@
   gap: 0.75rem;
 }
 
+.smartscan .ss-camera-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .smartscan .ss-preview-side {
   display: flex;
   flex-direction: column;
@@ -366,5 +372,100 @@
 
   .smartscan .ss-dropzone {
     padding: 0.9rem;
+  }
+}
+
+/* ---- Phone camera: full-screen view, controls always on screen ---------
+   On phone-sized viewports the inline camera (header + card + 16:9 video)
+   is taller than the screen, pushing Capture/Cancel below the fold. Here the
+   camera fills the viewport and the controls sit in a fixed bar.
+   CSS sizing only affects the preview; capture reads the stream's native
+   videoWidth x videoHeight, so photo resolution is unchanged.
+   env(safe-area-inset-*) is 0 unless the page opts into viewport-fit=cover;
+   the max() fallbacks keep spacing either way. */
+@media (max-width: 600px), (orientation: landscape) and (max-height: 520px) {
+  html:has(.smartscan .ss-camera),
+  html:has(.smartscan .ss-camera) body {
+    overflow: hidden; /* no background scrolling behind the camera */
+  }
+
+  .smartscan .ss-camera {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    gap: 0;
+    background: #000;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .smartscan .ss-camera .ss-frame--camera {
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: 0;
+    background: #000;
+  }
+
+  .smartscan .ss-camera .ss-video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    background: #000;
+  }
+
+  .smartscan .ss-camera-controls {
+    flex: 0 0 auto;
+    gap: 0.6rem;
+    padding: 0.75rem max(1rem, env(safe-area-inset-right, 0px))
+      max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+    background: #000;
+  }
+
+  .smartscan .ss-camera .ss-hint {
+    color: #d1d5db;
+    text-align: center;
+  }
+
+  .smartscan .ss-camera .ss-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .smartscan .ss-camera .ss-btn--primary {
+    background: #fff;
+    color: #111;
+  }
+
+  .smartscan .ss-camera .ss-btn--primary:hover:not(:disabled) {
+    background: #e5e7eb;
+  }
+
+  .smartscan .ss-camera .ss-btn--secondary {
+    background: transparent;
+    color: #fff;
+    border-color: #6b7280;
+  }
+
+  .smartscan .ss-camera .ss-btn--secondary:hover:not(:disabled) {
+    background: #1f2937;
+    border-color: #9ca3af;
+  }
+}
+
+/* Phone landscape: controls move to a side column so the preview keeps its height. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .smartscan .ss-camera {
+    flex-direction: row;
+    padding-top: 0;
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .smartscan .ss-camera-controls {
+    width: 11rem;
+    justify-content: center;
+    padding: max(0.75rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+      max(0.75rem, env(safe-area-inset-bottom, 0px)) 1rem;
+  }
+
+  .smartscan .ss-camera .ss-actions {
+    grid-template-columns: 1fr;
   }
 }

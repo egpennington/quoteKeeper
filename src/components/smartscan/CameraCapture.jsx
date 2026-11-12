@@ -111,20 +111,22 @@ export default function CameraCapture({ onCapture, onCancel, onError }) {
         )}
       </div>
 
-      <p className="ss-hint">Fill the frame with the page and hold steady before capturing.</p>
+      <div className="ss-camera-controls">
+        <p className="ss-hint">Fill the frame with the page and hold steady before capturing.</p>
 
-      <div className="ss-actions">
-        <button
-          type="button"
-          className="ss-btn ss-btn--primary"
-          onClick={handleCapture}
-          disabled={!ready || capturing}
-        >
-          <span aria-hidden="true">⦿</span> Capture
-        </button>
-        <button type="button" className="ss-btn ss-btn--secondary" onClick={onCancel}>
-          Cancel
-        </button>
+        <div className="ss-actions">
+          <button
+            type="button"
+            className="ss-btn ss-btn--primary"
+            onClick={handleCapture}
+            disabled={!ready || capturing}
+          >
+            <span aria-hidden="true">⦿</span> Capture
+          </button>
+          <button type="button" className="ss-btn ss-btn--secondary" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       </div>
     </section>
   );
