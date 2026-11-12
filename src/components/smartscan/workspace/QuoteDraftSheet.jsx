@@ -3,7 +3,7 @@ import TagSelect from '../../TagSelect';
 
 // Editable quote draft opened from a SmartScan selection. Covers the photo while
 // open; Cancel or Save returns to the same photo, zoom, and position.
-export default function QuoteDraftSheet({ draft, saving, notice, onChange, onCancel, onSave }) {
+export default function QuoteDraftSheet({ draft, fromSession, saving, notice, onChange, onCancel, onSave }) {
   const headingRef = useRef(null);
 
   // Move focus into the sheet for keyboard and screen-reader users, without
@@ -64,6 +64,11 @@ export default function QuoteDraftSheet({ draft, saving, notice, onChange, onCan
             autoComplete="off"
           />
         </label>
+        <p className="ss-hint ssw-session-hint">
+          {fromSession
+            ? 'Author and source come from your reading session. Changes here apply to this quote only.'
+            : 'Author and source will be remembered for your next quotes.'}
+        </p>
         <div className="ssw-field">
           <span id="ssw-tags-label">Tags</span>
           <TagSelect

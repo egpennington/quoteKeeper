@@ -1,5 +1,5 @@
 // Prepares self-hosted Tesseract.js assets (worker, engine, English models).
-// Used by the app's Vite build (OCR Lab) and by the standalone benchmark.
+// Used by the app's Vite build (SmartScan) and by the standalone benchmark.
 //
 // Layout written to `targetDir`:
 //   worker.min.js                     Tesseract.js worker      (copied from node_modules)
@@ -9,7 +9,7 @@
 // Models are cached in node_modules/.cache/ocr-models so repeat builds don't re-download.
 
 import { createHash } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync, gunzipSync } from 'node:zlib';
@@ -83,15 +83,23 @@ export async function prepareOcrAssets(targetDir, { models = ['fast', 'best_int'
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, 'eng.traineddata.gz'), gz);
   }
+  // Drop models left over from an earlier configuration so they aren't deployed.
+  const modelsDir = join(targetDir, 'models');
+  for (const entry of existsSync(modelsDir) ? readdirSync(modelsDir, { withFileTypes: true }) : []) {
+    if (entry.isDirectory() && !models.includes(entry.name)) {
+      rmSync(join(modelsDir, entry.name), { recursive: true, force: true });
+      log(`OCR model ${entry.name}: removed (no longer used)`);
+    }
+  }
   log(`OCR assets ready in ${targetDir} (models: ${models.join(', ')})`);
 }
 
 /**
  * Vite plugin: prepares OCR assets in public/ocr before the build so they are
  * deployed next to the app. Fails the production build if assets can't be
- * prepared (never ship a broken lab); only warns in dev.
+ * prepared (never ship SmartScan without OCR); only warns in dev.
  */
-export function ocrAssetsPlugin({ models = ['fast', 'best_int'] } = {}) {
+export function ocrAssetsPlugin({ models = ['best_int'] } = {}) {
   let isBuild = false;
   return {
     name: 'quotekeeper-ocr-assets',
@@ -103,7 +111,7 @@ export function ocrAssetsPlugin({ models = ['fast', 'best_int'] } = {}) {
         await prepareOcrAssets(join(projectRoot, 'public', 'ocr'), { models, log: (m) => (typeof this.info === 'function' ? this.info(m) : console.log(m)) });
       } catch (err) {
         if (isBuild) throw err;
-        this.warn(`OCR assets unavailable (OCR Lab will not work in dev): ${err.message}`);
+        this.warn(`OCR assets unavailable (SmartScan text recognition will not work in dev): ${err.message}`);
       }
     },
   };

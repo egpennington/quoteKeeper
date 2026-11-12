@@ -1,8 +1,10 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import CameraCapture from './smartscan/CameraCapture';
 import PhotoSourcePicker from './smartscan/PhotoSourcePicker';
+import ReadingCard from './smartscan/ReadingCard';
+import { EMPTY_READING, loadReading, normalizeReading, saveReading } from './smartscan/readingSession';
 import { STAGES, initialScanState, scanReducer } from './smartscan/scanModel';
 import {
   ScanImageError,
@@ -16,6 +18,16 @@ import './smartscan/smartscan.css';
 // The workspace pulls in the OCR engine, so it downloads only when a photo is opened.
 const SmartScanWorkspace = lazy(() => import('./smartscan/workspace/SmartScanWorkspace'));
 
+// localStorage can be blocked entirely (the property access itself throws);
+// the reading-session helpers treat a null storage as "nothing saved".
+function deviceStorage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 // Writes one quote to the existing Firestore `quotes` collection (same shape as manual entry).
 const saveQuote = (record) => addDoc(collection(db, 'quotes'), record);
 
@@ -24,9 +36,26 @@ const STEP_TEXT = {
   [STAGES.CAMERA]: 'Line up the page, then press Capture.',
 };
 
-export default function SmartScan({ onBack }) {
+export default function SmartScan({ onBack, userId }) {
   const [state, dispatch] = useReducer(scanReducer, initialScanState);
   const { stage, image, busy, notice } = state;
+
+  // Reading session (author + source for every new quote). Owned here, above the
+  // workspace, so it carries across photographs; kept on this device so it also
+  // survives the page reloading when the phone's camera app returns.
+  const [reading, setReadingState] = useState(() => loadReading(deviceStorage(), userId));
+  const setReading = useCallback(
+    (next) => {
+      const value = normalizeReading(next);
+      setReadingState(value);
+      saveReading(deviceStorage(), userId, value);
+    },
+    [userId],
+  );
+  const startNewStory = useCallback(() => {
+    setReading(EMPTY_READING);
+    dispatch({ type: 'SET_NOTICE', notice: { kind: 'info', text: 'New story started. Author and source cleared.' } });
+  }, [setReading]);
 
   const nativeCamera = useMemo(() => prefersNativeCamera(), []);
 
@@ -121,6 +150,10 @@ export default function SmartScan({ onBack }) {
         )}
 
         {stage === STAGES.SOURCE && (
+          <ReadingCard reading={reading} onChange={setReading} onNewStory={startNewStory} />
+        )}
+
+        {stage === STAGES.SOURCE && (
           <PhotoSourcePicker
             nativeCamera={nativeCamera}
             busy={busy}
@@ -136,6 +169,9 @@ export default function SmartScan({ onBack }) {
             <SmartScanWorkspace
               key={image.url}
               image={image}
+              reading={reading}
+              onReadingChange={setReading}
+              onNewStory={startNewStory}
               saveQuote={saveQuote}
               onClose={() => dispatch({ type: 'REMOVE_IMAGE' })}
             />

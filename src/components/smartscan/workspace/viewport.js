@@ -56,19 +56,23 @@ export function scaleLimits(viewW, viewH, pageW, pageH) {
   return { min, max: Math.max(min * 6, 1.5) };
 }
 
-function clampAxis(offset, content, viewport) {
+function clampAxis(offset, content, viewport, padEnd = 0) {
   if (content <= viewport) return (viewport - content) / 2; // centre when smaller
-  return Math.min(0, Math.max(viewport - content, offset)); // no empty gap at the edges
+  return Math.min(0, Math.max(viewport - content - padEnd, offset)); // no gap, except padEnd at the far edge
 }
 
-/** Keeps scale within limits and the page covering (or centred in) the viewport. */
-export function clampView(view, viewW, viewH, pageW, pageH) {
+/**
+ * Keeps scale within limits and the page covering (or centred in) the viewport.
+ * `pad.bottom` lets a page taller than the viewport be dragged that many px
+ * past its bottom edge, so content can be moved out from under floating controls.
+ */
+export function clampView(view, viewW, viewH, pageW, pageH, pad = {}) {
   const { min, max } = scaleLimits(viewW, viewH, pageW, pageH);
   const scale = Math.min(max, Math.max(min, view.scale));
   return {
     scale,
     tx: clampAxis(view.tx, pageW * scale, viewW),
-    ty: clampAxis(view.ty, pageH * scale, viewH),
+    ty: clampAxis(view.ty, pageH * scale, viewH, pad.bottom || 0),
   };
 }
 

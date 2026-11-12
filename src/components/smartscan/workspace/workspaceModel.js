@@ -3,6 +3,8 @@
 // One photo stays open while the user recognizes text, selects a passage with
 // two taps, edits it as a quote draft, saves, and selects the next passage.
 // Saving never discards the photo, the OCR words, or the zoom/rotation.
+// Author and source defaults come from the reading session (readingSession.js),
+// which outlives this workspace so it carries across photographs.
 
 import { joinWords } from '../selection/readingOrder.js';
 import { EMPTY_SELECTION, selectionPhase, tapWord } from '../selection/selection.js';
@@ -19,7 +21,6 @@ export const initialWorkspaceState = {
   draft: null, // { quote, author, source, tags, notes } while the editor is open
   draftRange: null,
   saving: false,
-  carry: { author: '', source: '' }, // same book: prefill the next draft
   notice: null, // { kind: 'info' | 'success' | 'error', text }
 };
 
@@ -75,8 +76,8 @@ export function workspaceReducer(state, action) {
         ...state,
         draft: {
           quote: joinWords(state.words, start, end),
-          author: state.carry.author,
-          source: state.carry.source,
+          author: action.reading?.author ?? '',
+          source: action.reading?.source ?? '',
           tags: [],
           notes: '',
         },
@@ -104,7 +105,6 @@ export function workspaceReducer(state, action) {
         draftRange: null,
         saved: state.draftRange ? [...state.saved, state.draftRange] : state.saved,
         selection: EMPTY_SELECTION,
-        carry: { author: state.draft?.author ?? '', source: state.draft?.source ?? '' },
         notice: { kind: 'success', text: 'Quote saved. Tap another passage to keep going.' },
       };
 

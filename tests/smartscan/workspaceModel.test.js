@@ -132,14 +132,15 @@ describe('workspace: returning to the photograph after saving', () => {
 });
 
 describe('workspace: multiple passages from one photograph', () => {
-  it('saves two passages, marks both, and carries author and source to the next draft', async () => {
+  it('saves two passages, marks both, and fills each draft from the reading session', async () => {
     const store = mockStore();
-    let s = workspaceReducer(select(ready(), 'quick', 'fox'), { type: 'OPEN_DRAFT' });
-    s = run(s, { type: 'EDIT_DRAFT', field: 'author', value: 'A. Writer' }, { type: 'EDIT_DRAFT', field: 'source', value: 'Sample Book' });
+    const reading = { author: 'A. Writer', source: 'Sample Book' }; // see readingSession.test.js
+    let s = workspaceReducer(select(ready(), 'quick', 'fox'), { type: 'OPEN_DRAFT', reading });
+    assert.equal(s.draft.author, 'A. Writer');
     s = await save(s, store);
 
     // Second passage, selected in reverse, across lines.
-    s = workspaceReducer(select(s, 'bering', 'patient'), { type: 'OPEN_DRAFT' });
+    s = workspaceReducer(select(s, 'bering', 'patient'), { type: 'OPEN_DRAFT', reading });
     assert.equal(s.draft.quote, 'patient reader keeps remembering');
     assert.equal(s.draft.author, 'A. Writer');
     assert.equal(s.draft.source, 'Sample Book');

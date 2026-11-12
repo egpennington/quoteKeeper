@@ -1,14 +1,22 @@
 // SmartScan end-to-end browser checks against the real App.jsx, Firebase mocked.
-// Usage: npm run test:e2e        (see tests/e2e/README.md)
+// Usage: npm run test:e2e          against the dev server (fast)
+//        npm run test:e2e:build    against a real production build
+// See tests/e2e/README.md.
 //
 // Starts its own mocked dev server and headless Chrome, emulates a 390x844 touch
 // phone, drives the app with real touch events, and prints PASS/FAIL per check.
 // Exit code 0 only if every check passes.
+import { readFileSync } from 'node:fs';
 import { launch } from './cdp.mjs';
 import { startServer } from './server.mjs';
 
-const server = await startServer();
+const server = await startServer({ built: process.argv.includes('--build') || process.env.E2E_BUILD === '1' });
 const APP = server.url;
+console.log(`Testing ${server.mode} at ${APP}\n`);
+
+// The synthetic page generator is handed to the page as source text, so it also
+// works against a production build (which doesn't serve the benchmark folder).
+const SAMPLES_SRC = readFileSync(new URL('../../benchmark/ocr/samples.js', import.meta.url), 'utf8');
 const results = [];
 const check = (name, ok, detail = '') => {
   results.push({ name, ok: Boolean(ok), detail });
@@ -18,7 +26,8 @@ const check = (name, ok, detail = '') => {
 const HELPERS = `
 window.__h = {
   async loadSample(id, rotateCCW = false, selector = 'input[aria-label="Upload a photo from this device"]') {
-    const { SAMPLE_SPECS, renderSample } = await import('/benchmark/ocr/samples.js');
+    window.__samplesUrl ??= URL.createObjectURL(new Blob([window.__samplesSrc], { type: 'text/javascript' }));
+    const { SAMPLE_SPECS, renderSample } = await import(window.__samplesUrl);
     const s = await renderSample(SAMPLE_SPECS.find((x) => x.id === id));
     let file = s.file;
     if (rotateCCW) {
@@ -58,8 +67,8 @@ window.__h = {
     const d = Math.max(Math.abs(a.left - b.left), Math.abs(a.top - b.top), Math.abs(a.width - b.width), Math.abs(a.height - b.height));
     return d;
   },
-  setField(selector, value) {
-    const el = document.querySelector(selector);
+  setField(selector, value, index = 0) {
+    const el = document.querySelectorAll(selector)[index];
     const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
     Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value);
     el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -67,7 +76,8 @@ window.__h = {
   layout() {
     const ws = document.querySelector('.ss-workspace').getBoundingClientRect();
     const btns = [...document.querySelectorAll('.ss-workspace button')].map((b) => {
-      const r = b.getBoundingClientRect();
+      // The reading-session button's tap target is the whole top-bar centre (its ::before).
+      const r = (b.classList.contains('ssw-reading') ? b.parentElement : b).getBoundingClientRect();
       return { label: b.getAttribute('aria-label') || b.textContent.trim(), w: r.width, h: r.height,
         inside: r.left >= -0.5 && r.top >= -0.5 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5 };
     });
@@ -82,7 +92,9 @@ true;
 `;
 
 const b = await launch();
-const { evaluate: ev, waitFor, tap, pinch, drag, click, delay } = b;
+const { waitFor, tap, pinch, drag, click, delay } = b;
+// Installing the helpers always brings the sample generator along.
+const ev = (expr) => (expr === HELPERS ? b.evaluate(`window.__samplesSrc = ${JSON.stringify(SAMPLES_SRC)};\n${HELPERS}`) : b.evaluate(expr));
 const h = (expr) => ev(`window.__h.${expr}`);
 
 async function ensureVisible(i, pageW) {
@@ -91,7 +103,9 @@ async function ensureVisible(i, pageW) {
     const v = await h('view()');
     const margin = 40;
     const dx = p.x < v.left + margin ? v.left + v.vw / 2 - p.x : p.x > v.left + v.vw - margin ? v.left + v.vw / 2 - p.x : 0;
-    const dy = p.y < v.top + margin ? v.top + v.vh / 2 - p.y : p.y > v.top + v.vh - margin ? v.top + v.vh / 2 - p.y : 0;
+    // Also keep clear of the zoom buttons floating in the bottom-right corner.
+    const underZoom = p.x > v.left + v.vw - 175 && p.y > v.top + v.vh - 75;
+    const dy = p.y < v.top + margin || p.y > v.top + v.vh - margin || underZoom ? v.top + v.vh / 2 - p.y : 0;
     if (!dx && !dy) return p;
     const cx = v.left + v.vw / 2;
     const cy = v.top + v.vh / 2;
@@ -133,6 +147,9 @@ try {
   let L = await h('layout()');
   check('Workspace fills the phone screen, no horizontal scroll', L.ws.join() === '0,0,390,844' && !L.hScroll, L.ws.join());
   check('All workspace buttons on screen and ≥44 px', L.btns.every((x) => x.inside && x.h >= 44 && x.w >= 44), L.btns.map((x) => `${x.label}:${Math.round(x.w)}x${Math.round(x.h)}${x.inside ? '' : '(off)'}`).join(' '));
+  const zoomRow = await ev(`(() => { const vp = document.querySelector('.ssw-viewport').getBoundingClientRect(); return [...document.querySelectorAll('.ssw-zoom button')].map((x) => { const r = x.getBoundingClientRect(); return { top: Math.round(r.top), fromRight: Math.round(vp.right - r.right), fromBottom: Math.round(vp.bottom - r.bottom) }; }); })()`);
+  check('Zoom controls are one row in the bottom-right corner of the photo', zoomRow.length === 3 && zoomRow.every((z) => z.top === zoomRow[0].top && z.fromBottom >= 0 && z.fromBottom <= 16) && Math.min(...zoomRow.map((z) => z.fromRight)) <= 16,
+    JSON.stringify(zoomRow));
   check('Overlay aligned with photo at fit', (await h('rectsAligned()')) < 1, `${(await h('rectsAligned()')).toFixed(3)} px`);
 
   // ---- Pinch zoom ---------------------------------------------------------
@@ -172,7 +189,7 @@ try {
   // Centre the pair, then make sure neither word is under the floating zoom buttons.
   await ensureVisible(A + 1, 3024);
   const vv = await h('view()');
-  const clear = (p) => p.x > vv.left + 20 && p.x < vv.left + vv.vw - 70 && p.y > vv.top + 20 && p.y < vv.top + vv.vh - 20;
+  const clear = (p) => p.x > vv.left + 20 && p.x < vv.left + vv.vw - 20 && p.y > vv.top + 20 && p.y < vv.top + vv.vh - 75;
   const p1 = await h(`wordScreen(${A}, 3024)`);
   const p2 = await h(`wordScreen(${A + 3}, 3024)`);
   if (!clear(p1) || !clear(p2)) {
@@ -249,6 +266,10 @@ try {
   await click('.ssw-zoom button[aria-label="Zoom in"]');
   check('Zoom in button zooms', (await h('view()')).pageCssW > vf.pageCssW * 1.5);
   check('Overlay aligned with photo after button zoom', (await h('rectsAligned()')) < 1);
+  for (let i = 0; i < 3; i++) await drag(195, 650, 195, 150);
+  const vPad = await h('view()');
+  check('The page can be dragged up past its bottom edge so no line stays under the zoom controls', Math.abs(vPad.vh - (vPad.ty + vPad.pageCssH) - 64) < 1.5,
+    `gap below page: ${(vPad.vh - (vPad.ty + vPad.pageCssH)).toFixed(1)} px`);
 
   // ---- Close photo, back to app, manual entry still works -------------------
   await click('.ssw-topbar button[aria-label="Close photo"]');
@@ -292,21 +313,119 @@ try {
     `${L.ws.join()} viewport bottom ${L.vpBottom} panel ${L.panelTop}-${L.panelBottom}; off: ${L.btns.filter((x) => !x.inside).map((x) => x.label).join(',')}`);
   check('Landscape: overlay aligned', (await h('rectsAligned()')) < 1);
   await b.viewport(390, 844);
+  await delay(300);
+
+  // ---- Reading session across photographs ------------------------------------
+  // This is the second photograph. Author and source were typed once, in the
+  // first photo's first draft.
+  const draftAS = () => ev(`[...document.querySelectorAll('.ssw-sheet input.quote-input')].map((i) => i.value).join('|')`);
+  const panelBtn = (label) => ev(`[...document.querySelectorAll('.ssw-panel button')].find((x) => x.textContent.trim() === '${label}').click()`);
+  const sheetBtn = (label) => ev(`[...document.querySelectorAll('.ssw-sheet button')].find((x) => x.textContent.trim().startsWith('${label}')).click()`);
+  const sheetGone = () => waitFor(`!document.querySelector('.ssw-sheet')`, 5000, 'sheet closes');
+  const readingLine = () => ev(`document.querySelector('.ssw-reading').textContent.trim()`);
+  const lastWrite = () => ev(`window.__fs.writes[window.__fs.writes.length - 1].data`);
+  const stored = () => ev(`Object.keys(localStorage).filter((k) => k.startsWith('quotekeeper.smartscan.reading')).map((k) => localStorage.getItem(k))`);
+
+  check('Second photograph: top bar shows the reading session', (await readingLine()).endsWith('Synthetic Book, p. 47 · Test Author'), await readingLine());
+  await panelBtn('Add Quote');
+  await waitFor(`!!document.querySelector('.ssw-sheet')`);
+  check('Second photograph: draft prefilled with the same author and source', (await draftAS()) === 'Test Author|Synthetic Book, p. 47', await draftAS());
+  check('Draft explains that changes apply to this quote only', await ev(`document.querySelector('.ssw-session-hint').textContent.includes('this quote only')`));
+  await h(`setField('.ssw-sheet input.quote-input', 'One-off Author', 0)`);
+  await sheetBtn('Save');
+  await sheetGone();
+  const oneOff = await lastWrite();
+  check('Editing one quote’s author saves it for that quote only; the session is unchanged', oneOff.author === 'One-off Author' && oneOff.source === 'Synthetic Book, p. 47' && (await readingLine()).endsWith('Synthetic Book, p. 47 · Test Author'),
+    `${oneOff.author} | ${await readingLine()}`);
+
+  // Change the story from the workspace top bar.
+  await click('.ssw-reading');
+  await waitFor(`!!document.querySelector('#ssw-reading-title')`);
+  await h(`setField('.ssw-sheet .ss-reading-form input', 'Isaac Asimov', 0)`);
+  await h(`setField('.ssw-sheet .ss-reading-form input', 'Segregationist', 1)`);
+  await sheetBtn('Save');
+  await sheetGone();
+  check('Changing the story updates the top bar', (await readingLine()).endsWith('Segregationist · Isaac Asimov'), await readingLine());
+  await tapWord(C, 3024);
+  await tapWord(D, 3024);
+  await panelBtn('Add Quote');
+  await waitFor(`!!document.querySelector('.ssw-sheet')`);
+  check('After changing the story, the next draft uses the new author and source', (await draftAS()) === 'Isaac Asimov|Segregationist', await draftAS());
+  await sheetBtn('Save');
+  await sheetGone();
+  const changed = await lastWrite();
+  check('Quote saved with the new story’s author and source (existing fields only)', changed.author === 'Isaac Asimov' && changed.source === 'Segregationist' && JSON.stringify(Object.keys(changed)) === JSON.stringify(['quote', 'author', 'source', 'tags', 'notes', 'createdAt']));
+  check('The device stores only author and source for the session', JSON.stringify(await stored()) === JSON.stringify(['{"author":"Isaac Asimov","source":"Segregationist"}']), JSON.stringify(await stored()));
+
+  // Reload the page (as Android may do when the camera app returns), then a third photograph.
+  await b.goto(APP);
+  await waitFor(`!!document.querySelector('.app-header')`, 20000, 'app header after reload');
+  await ev(HELPERS);
+  await ev(`[...document.querySelectorAll('button')].find((x) => x.textContent.includes('SmartScan')).click()`);
+  await waitFor(`!!document.querySelector('.ss-source')`);
+  const card = () => ev(`document.querySelector('.ss-reading').textContent`);
+  check('After a page reload, the photo screen still shows the reading session', (await card()).includes('Segregationist') && (await card()).includes('Isaac Asimov'), await card());
+  await h(`loadSample('clean')`);
+  await waitFor(`window.__h.status() === 'Tap the first word of a passage.'`, 120000, 'OCR on third photograph');
+  check('Third photograph: reading session still in the top bar', (await readingLine()).endsWith('Segregationist · Isaac Asimov'), await readingLine());
+  const w3p = await h(`wordScreen(${A}, 3024)`);
+  await pinch(w3p.x, w3p.y, 80, 240);
+  await tapWord(A, 3024);
+  await tapWord(A + 5, 3024);
+  await panelBtn('Add Quote');
+  await waitFor(`!!document.querySelector('.ssw-sheet')`);
+  check('Third photograph: draft prefilled from the session', (await draftAS()) === 'Isaac Asimov|Segregationist', await draftAS());
+  await sheetBtn('Back to photo');
+  await sheetGone();
+
+  // New Story.
+  await click('.ssw-reading');
+  await waitFor(`!!document.querySelector('#ssw-reading-title')`);
+  await sheetBtn('New Story');
+  await delay(150);
+  check('New Story empties the form and says the previous values were cleared', (await ev(`[...document.querySelectorAll('.ssw-sheet .ss-reading-form input')].map((i) => i.value).join('|')`)) === '|' && (await ev(`document.querySelector('.ssw-sheet .ss-reading-form').textContent.includes('New story started')`)));
+  await sheetBtn('Close');
+  await sheetGone();
+  check('New Story clears the session in the top bar and on the device', (await readingLine()).endsWith('Set author & source') && (await stored()).length === 0, `${await readingLine()} | stored: ${JSON.stringify(await stored())}`);
+  await panelBtn('Add Quote');
+  await waitFor(`!!document.querySelector('.ssw-sheet')`);
+  check('After New Story, the next draft has no author or source', (await draftAS()) === '|', await draftAS());
+  await sheetBtn('Save');
+  await sheetGone();
+  const blank = await lastWrite();
+  check('Quote after New Story is saved without the previous author or source', blank.author === '' && blank.source === '' && (await readingLine()).endsWith('Set author & source'), JSON.stringify([blank.author, blank.source]));
+
+  // The same controls on the photo screen.
   await click('.ssw-topbar button[aria-label="Close photo"]');
+  await waitFor(`!document.querySelector('.ss-workspace') && !!document.querySelector('.ss-source')`);
+  const cardBtn = (label) => ev(`[...document.querySelectorAll('.ss-reading button')].find((x) => x.textContent.trim() === '${label}').click()`);
+  await cardBtn('Set');
+  await h(`setField('.ss-reading .ss-reading-form input', 'Ted Chiang', 0)`);
+  await h(`setField('.ss-reading .ss-reading-form input', 'Exhalation', 1)`);
+  await cardBtn('Save');
+  check('Photo screen: the session can be set before taking a photo', (await card()).includes('Exhalation') && (await card()).includes('Ted Chiang'), await card());
+  await cardBtn('New Story');
+  check('Photo screen: New Story clears it', !(await card()).includes('Exhalation') && (await stored()).length === 0, await card());
+  const src = await ev(`(() => { const c = document.querySelector('.smartscan').getBoundingClientRect(); const u = [...document.querySelectorAll('.ss-source button')].map((x) => x.getBoundingClientRect().bottom); return { top: Math.round(c.top), lastButton: Math.round(Math.max(...u)), scroll: document.documentElement.scrollHeight > innerHeight }; })()`);
+  check('Photo screen: card starts at the top (no empty band) and both photo buttons are visible without scrolling', src.top <= 24 && src.lastButton <= 844 && !src.scroll, JSON.stringify(src));
+
   await click('.ss-back-button');
   await waitFor(`!!document.querySelector('.app-header')`);
 
-  // ---- OCR Lab regression (shares ocrEngine) ---------------------------------
+  // ---- OCR Lab retired ---------------------------------------------------------
+  // The test server still sets the old VITE_SMARTSCAN_LAB_UIDS allowlist for the
+  // signed-in mock user, to prove the variable no longer does anything.
+  check('OCR Lab button is gone from the header', !(await ev(`[...document.querySelectorAll('button')].some((x) => x.textContent.includes('OCR Lab'))`)));
   await ev(`location.hash = '#ocr-lab'`);
-  await waitFor(`!!document.querySelector('.ocr-lab')`, 20000, 'OCR lab');
-  await h(`loadSample('clean', false, '.ocr-lab input[accept*="image/jpeg"]')`);
-  await waitFor(`document.body.textContent.includes('Photo ready')`, 20000, 'lab photo');
-  await ev(`[...document.querySelectorAll('.ocr-lab button')].find((x) => x.textContent.trim() === 'Run OCR').click()`);
-  await waitFor(`!!document.querySelector('.lab-table tbody tr') && !document.body.textContent.includes('Recognizing')`, 120000, 'lab run');
-  const labRow = await ev(`document.querySelector('.lab-table tbody tr').textContent`);
-  check('OCR Lab still runs with the shared engine', /1500×2000/.test(labRow) && !/error|load:/i.test(labRow), labRow);
-  check('OCR Lab overlay still aligned (box count > 0)', (await ev(`document.querySelectorAll('.lab-box').length`)) > 100);
-  check('No Firestore writes from the lab', (await ev('window.__fs.writes.length')) === 3);
+  await delay(400);
+  check('The old #ocr-lab address shows the normal app', await ev(`!!document.querySelector('.quote-form') && !document.querySelector('.ocr-lab')`));
+  check('No OCR Lab code was requested', !b.requests.some((u) => /OcrLab|\/lab\//.test(u)));
+  // The model itself is fetched inside the OCR worker, which this page-level
+  // network log can't see, so ask the server directly.
+  const model = await ev(`fetch('/ocr/models/best_int/eng.traineddata.gz').then(async (r) => ({ ok: r.ok, bytes: (await r.arrayBuffer()).byteLength }))`);
+  check('SmartScan’s OCR model (best_int) is served by the app', model.ok && model.bytes > 1_000_000, `${(model.bytes / 1048576).toFixed(1)} MB`);
+  const fast = await ev(`fetch('/ocr/models/fast/eng.traineddata.gz').then(async (r) => ({ status: r.status, type: r.headers.get('content-type') || '', bytes: (await r.arrayBuffer()).byteLength }))`);
+  check('The Lab-only "fast" model is no longer shipped', fast.status === 404 || /html/.test(fast.type) || fast.bytes < 100_000, JSON.stringify(fast));
 
   // ---- Hygiene ----------------------------------------------------------------
   const firebaseHosts = b.requests.filter((u) => /firestore\.googleapis|identitytoolkit|securetoken|firebaseio|firebaseapp|googleapis\.com\/(?!css)/.test(u));

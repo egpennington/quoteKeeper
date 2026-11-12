@@ -55,6 +55,13 @@
 
 /* ---- Layout ------------------------------------------------------------ */
 
+/* index.css centres the app vertically. With the account header hidden in
+   SmartScan, that left a large empty band above the card on phones, so the
+   card sits at the top here instead. */
+html:has(.smartscan) body {
+  align-items: flex-start;
+}
+
 .smartscan .ss-body {
   display: flex;
   flex-direction: column;
@@ -202,6 +209,92 @@
   width: 100%;
 }
 
+/* ---- Reading session (author + source for every new quote) -------------- */
+
+.smartscan .ss-reading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.smartscan .ss-reading--editing {
+  display: block;
+}
+
+.smartscan .ss-reading-summary {
+  flex: 1;
+  min-width: 0;
+}
+
+.smartscan .ss-reading-kicker {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.smartscan .ss-reading-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.smartscan .ss-reading-title--empty {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.smartscan .ss-reading-buttons {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.smartscan .ss-btn--small {
+  width: auto;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.smartscan .ss-reading-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.smartscan .ss-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.smartscan .ss-field > span {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.smartscan .ss-field .quote-input {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+}
+
+.smartscan .ss-reading-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.smartscan .ss-reading-actions .ss-btn {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
 /* ---- Source picker ----------------------------------------------------- */
 
 .smartscan .ss-source {
@@ -215,7 +308,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
-  padding: 1.75rem 1rem;
+  padding: 1.1rem 1rem;
   border: 2px dashed #d3d9e0;
   border-radius: 14px;
   background: #fafbfc;

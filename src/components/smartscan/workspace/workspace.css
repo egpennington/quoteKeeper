@@ -30,16 +30,69 @@ html:has(.smartscan .ss-workspace) body {
   background: #111;
 }
 
-.smartscan .ssw-status {
+/* Centre of the top bar: status on line one, reading session on line two.
+   The whole block is one tap target for editing the reading session. */
+.smartscan .ssw-center {
+  position: relative;
   flex: 1;
   min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border-radius: 10px;
+}
+
+.smartscan .ssw-status {
+  max-width: 100%;
   margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
+  line-height: 1.2;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.smartscan .ssw-reading {
+  width: auto;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.smartscan .ssw-reading::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.smartscan .ssw-reading:hover {
+  color: #fff;
+  border: 0;
+}
+
+.smartscan .ssw-reading:focus-visible {
+  outline: none;
+}
+
+.smartscan .ssw-reading:focus-visible::before {
+  outline: 3px solid #83b8d5;
 }
 
 .smartscan .ssw-icon-btn {
@@ -200,13 +253,14 @@ html:has(.smartscan .ss-workspace) body {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
+/* One row in the bottom corner, so it overlaps at most the end of one line.
+   The page can be dragged up past its bottom edge to clear it (VIEW_PAD). */
 .smartscan .ssw-zoom {
   position: absolute;
   right: max(0.6rem, env(safe-area-inset-right, 0px));
   bottom: 0.6rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   z-index: 2;
 }
 
@@ -268,6 +322,14 @@ html:has(.smartscan .ss-workspace) body {
   gap: 0.85rem;
   padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0
     max(1rem, env(safe-area-inset-left, 0px));
+}
+
+.smartscan .ssw-sheet-body--padded {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.smartscan .ssw-session-hint {
+  margin-top: -0.4rem;
 }
 
 .smartscan .ssw-sheet-head .ss-heading:focus {

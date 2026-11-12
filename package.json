@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "node --test \"tests/**/*.test.js\"",
     "test:e2e": "node tests/e2e/run.mjs",
+    "test:e2e:build": "node tests/e2e/run.mjs --build",
     "preview": "vite preview",
     "bench:ocr": "vite build --config benchmark/ocr/vite.config.js && vite preview --config benchmark/ocr/vite.config.js",
     "bench:ocr:prepare": "node benchmark/ocr/prepare-assets.mjs"

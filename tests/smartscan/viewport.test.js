@@ -133,6 +133,17 @@ describe('view transform', () => {
     assert.equal(v.ty, VIEW.h - PHOTO.h);
   });
 
+  it('lets a tall page be dragged past its bottom edge by the padding (to clear floating controls), not the top', () => {
+    const pad = { bottom: 64 };
+    const down = clampView({ scale: 1, tx: 0, ty: -99999 }, VIEW.w, VIEW.h, PHOTO.w, PHOTO.h, pad);
+    assert.equal(down.ty, VIEW.h - PHOTO.h - 64);
+    const up = clampView({ scale: 1, tx: 0, ty: 500 }, VIEW.w, VIEW.h, PHOTO.w, PHOTO.h, pad);
+    assert.equal(up.ty, 0);
+    // A page that fits is still centred; the padding doesn't shift it.
+    const fit = fitView(VIEW.w, VIEW.h, PHOTO.w, PHOTO.h);
+    assert.deepEqual(clampView(fit, VIEW.w, VIEW.h, PHOTO.w, PHOTO.h, pad), fit);
+  });
+
   it('reveals an off-screen selection with the minimum pan, and leaves a visible one alone', () => {
     const v = { scale: 1, tx: 0, ty: 0 };
     const below = { x0: 100, y0: 1000, x1: 300, y1: 1060 };

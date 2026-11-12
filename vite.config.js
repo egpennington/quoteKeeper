@@ -7,13 +7,14 @@ import { ocrAssetsPlugin } from './scripts/ocr-assets.mjs'
 export default defineConfig({
   plugins: [
     react(),
-    // Self-hosted OCR worker/engine/models in public/ocr (SmartScan OCR Lab).
-    ocrAssetsPlugin({ models: ['fast', 'best_int'] }),
+    // Self-hosted OCR worker, engine, and model in public/ocr for SmartScan.
+    ocrAssetsPlugin({ models: ['best_int'] }),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        // Keep OCR assets and the test-only OCR Lab out of every user's install.
-        globIgnores: ['**/node_modules/**/*', 'ocr/**', 'assets/OcrLab-*'],
+        // OCR assets (~10 MB) load on demand when SmartScan is used; keep them
+        // out of the install-time precache.
+        globIgnores: ['**/node_modules/**/*', 'ocr/**'],
       },
       manifest: {
         name: 'QuoteKeeper',

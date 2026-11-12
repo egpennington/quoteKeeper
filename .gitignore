@@ -36,3 +36,6 @@ benchmark/ocr/dist/
 benchmark/ocr/photos/
 benchmark/ocr/results/
 smartscan-ocr-benchmark-*.json
+
+# Browser test harness: production build used by `npm run test:e2e:build`
+tests/e2e/.dist/

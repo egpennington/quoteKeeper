@@ -1,5 +1,5 @@
 // Runs on-device OCR for the open photo using the shared engine (ocr/ocrEngine.js),
-// the same code the OCR Lab benchmarks. Settings come from the 2A-0 benchmark:
+// with the settings chosen by the Sprint 2A-0 benchmark (benchmark/ocr):
 // best_int model at 2000 px on the long edge.
 //
 // - The worker is created once and reused (model cached on the device after first use).

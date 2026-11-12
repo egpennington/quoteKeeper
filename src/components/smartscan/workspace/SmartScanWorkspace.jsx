@@ -14,6 +14,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { persistQuote } from '../../../utils/quoteRecord';
+import ReadingForm from '../ReadingForm';
+import { adoptFromQuote, hasReading, readingLabel } from '../readingSession';
 import { joinWords } from '../selection/readingOrder';
 import { highlightedRange, hitTest, selectionPhase, selectionRects, unionRect } from '../selection/selection';
 import QuoteDraftSheet from './QuoteDraftSheet';
@@ -36,11 +38,15 @@ const TAP_SLOP_PX = 8; // movement beyond this turns a tap into a pan
 const TAP_MAX_MS = 600;
 const FINGER_PX = 22; // tap allowance around words, in screen pixels
 const ZOOM_STEP = 1.6;
+// The zoom buttons float over the bottom edge of the photo. The page may be
+// dragged this far past its bottom edge so no line is ever stuck under them.
+const VIEW_PAD = { bottom: 64 };
 
-export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
+export default function SmartScanWorkspace({ image, reading, onReadingChange, onNewStory, onClose, saveQuote }) {
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const { rotation, ocr, words, selection, saved, draft, saving, notice } = state;
   const [attempt, setAttempt] = useState(0);
+  const [readingOpen, setReadingOpen] = useState(false);
   useOcr(image.file, rotation, attempt, dispatch);
 
   const page = useMemo(() => rotatedSize(image.width, image.height, rotation), [image, rotation]);
@@ -69,12 +75,12 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
       fittedRotation.current = rotation;
       setView(fitView(viewSize.w, viewSize.h, page.width, page.height));
     } else {
-      setView((v) => v && clampView(v, viewSize.w, viewSize.h, page.width, page.height));
+      setView((v) => v && clampView(v, viewSize.w, viewSize.h, page.width, page.height, VIEW_PAD));
     }
   }, [viewSize, rotation, page]);
 
   const clamp = useCallback(
-    (v) => clampView(v, viewSize.w, viewSize.h, page.width, page.height),
+    (v) => clampView(v, viewSize.w, viewSize.h, page.width, page.height, VIEW_PAD),
     [viewSize, page],
   );
 
@@ -214,8 +220,10 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
   const save = async () => {
     dispatch({ type: 'SAVE_START' });
     try {
-      await persistQuote(draft, saveQuote);
+      const saved = await persistQuote(draft, saveQuote);
       dispatch({ type: 'SAVE_SUCCESS' });
+      // The session learns author/source from this quote only where it had none.
+      onReadingChange(adoptFromQuote(reading, saved));
     } catch (err) {
       console.error('SmartScan save failed:', err);
       dispatch({ type: 'SAVE_FAILURE', message: 'The quote could not be saved. Check your connection and try again.' });
@@ -243,6 +251,7 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
 
   const imgMatrix = view ? rotationMatrix(rotation, image.width * view.scale, image.height * view.scale) : null;
   const anchorWord = phase === 'anchored' ? words[selection.anchor] : null;
+  const sessionLabel = readingLabel(reading);
 
   return (
     <section className="ss-workspace" aria-label="SmartScan photo">
@@ -250,9 +259,25 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
         <button type="button" className="ssw-icon-btn" onClick={onClose} aria-label="Close photo" title="Close photo">
           <span aria-hidden="true">←</span>
         </button>
-        <p className="ssw-status" role="status" aria-live="polite">
-          {status}
-        </p>
+        <div className="ssw-center">
+          <p className="ssw-status" role="status" aria-live="polite">
+            {status}
+          </p>
+          {/* Its ::before covers the whole centre block, giving a full-height tap target. */}
+          <button
+            type="button"
+            className="ssw-reading"
+            onClick={() => setReadingOpen(true)}
+            aria-label={
+              sessionLabel
+                ? `Reading: ${sessionLabel}. Change author and source, or start a new story.`
+                : 'Set the author and source for this reading session.'
+            }
+          >
+            <span aria-hidden="true">📖 </span>
+            {sessionLabel || 'Set author & source'}
+          </button>
+        </div>
         <button
           type="button"
           className="ssw-icon-btn"
@@ -342,11 +367,11 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
         )}
 
         <div className="ssw-zoom" role="group" aria-label="Zoom">
-          <button type="button" className="ssw-icon-btn" onClick={() => zoomBy(ZOOM_STEP)} disabled={atMax} aria-label="Zoom in">
-            <span aria-hidden="true">+</span>
-          </button>
           <button type="button" className="ssw-icon-btn" onClick={() => zoomBy(1 / ZOOM_STEP)} disabled={atMin} aria-label="Zoom out">
             <span aria-hidden="true">−</span>
+          </button>
+          <button type="button" className="ssw-icon-btn" onClick={() => zoomBy(ZOOM_STEP)} disabled={atMax} aria-label="Zoom in">
+            <span aria-hidden="true">+</span>
           </button>
           <button type="button" className="ssw-icon-btn" onClick={zoomFit} disabled={atMin} aria-label="Fit whole page">
             <span aria-hidden="true">⤢</span>
@@ -381,7 +406,7 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
             <button
               type="button"
               className="ss-btn ss-btn--primary"
-              onClick={() => dispatch({ type: 'OPEN_DRAFT' })}
+              onClick={() => dispatch({ type: 'OPEN_DRAFT', reading })}
               disabled={phase !== 'selected'}
             >
               Add Quote
@@ -393,12 +418,34 @@ export default function SmartScanWorkspace({ image, onClose, saveQuote }) {
       {draft && (
         <QuoteDraftSheet
           draft={draft}
+          fromSession={hasReading(reading)}
           saving={saving}
           notice={notice}
           onChange={editDraft}
           onCancel={cancelDraft}
           onSave={save}
         />
+      )}
+
+      {readingOpen && !draft && (
+        <div className="ssw-sheet" role="dialog" aria-modal="true" aria-labelledby="ssw-reading-title">
+          <div className="ssw-sheet-body ssw-sheet-body--padded">
+            <div className="ssw-sheet-head">
+              <h2 id="ssw-reading-title" className="ss-heading">
+                Reading session
+              </h2>
+            </div>
+            <ReadingForm
+              reading={reading}
+              onSave={(next) => {
+                onReadingChange(next);
+                setReadingOpen(false);
+              }}
+              onNewStory={onNewStory}
+              onClose={() => setReadingOpen(false)}
+            />
+          </div>
+        </div>
       )}
     </section>
   );
