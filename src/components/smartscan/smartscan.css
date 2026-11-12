@@ -232,22 +232,15 @@
   font-weight: 600;
 }
 
-/* ---- Frame (camera + preview) ------------------------------------------ */
+/* ---- Frame (camera) ----------------------------------------------------- */
 
-.smartscan .ss-camera,
-.smartscan .ss-preview {
+.smartscan .ss-camera {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .smartscan .ss-camera-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.smartscan .ss-preview-side {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -264,8 +257,7 @@
   background: #111;
 }
 
-.smartscan .ss-video,
-.smartscan .ss-image {
+.smartscan .ss-video {
   display: block;
   width: 100%;
   max-height: min(65vh, 640px);
@@ -297,6 +289,18 @@
   color: #e5e7eb;
   font-size: 0.8rem;
   text-align: center;
+}
+
+/* Shown while the workspace code downloads (its own CSS loads with it). */
+.smartscan .ssw-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  color: #f3f4f6;
 }
 
 /* ---- Utilities --------------------------------------------------------- */
@@ -355,19 +359,8 @@
     display: none;
   }
 
-  .smartscan .ss-video,
-  .smartscan .ss-image {
+  .smartscan .ss-video {
     max-height: 62vh;
-  }
-
-  .smartscan .ss-preview {
-    display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    align-items: start;
-  }
-
-  .smartscan .ss-preview .ss-actions {
-    grid-template-columns: 1fr;
   }
 
   .smartscan .ss-dropzone {

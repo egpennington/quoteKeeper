@@ -1,17 +1,14 @@
 // SmartScan workflow state.
 //
 // Full pipeline: Photo -> Text Recognition -> Passage Selection -> Review -> Save
-// Sprint 1 implements the Photo stages only. Later sprints add stages and
-// actions here, plus a component per stage, without changing the photo UI.
+// This reducer covers getting a photo. Once a photo is loaded, the full-screen
+// workspace (workspace/workspaceModel.js) runs recognition, selection, review,
+// and save, and stays on that photo until the user closes it.
 
 export const STAGES = {
   SOURCE: 'source', // choose Take Photo / Upload Photo
   CAMERA: 'camera', // live camera preview
-  PREVIEW: 'preview', // photo selected
-  // Sprint 2+ (reserved, not implemented):
-  // RECOGNIZING: 'recognizing',
-  // SELECT: 'select',
-  // REVIEW: 'review',
+  WORKSPACE: 'workspace', // photo open: recognize, select, edit, save
 };
 
 export const initialScanState = {
@@ -29,7 +26,7 @@ export function scanReducer(state, action) {
     case 'CLOSE_CAMERA':
       return {
         ...state,
-        stage: state.image ? STAGES.PREVIEW : STAGES.SOURCE,
+        stage: state.image ? STAGES.WORKSPACE : STAGES.SOURCE,
         notice: action.notice ?? null,
       };
 
@@ -37,7 +34,7 @@ export function scanReducer(state, action) {
       return { ...state, stage: STAGES.SOURCE, notice: null };
 
     case 'CANCEL_REPLACE':
-      return { ...state, stage: state.image ? STAGES.PREVIEW : STAGES.SOURCE, notice: null };
+      return { ...state, stage: state.image ? STAGES.WORKSPACE : STAGES.SOURCE, notice: null };
 
     case 'LOAD_START':
       return { ...state, stage: STAGES.SOURCE, busy: true, notice: { kind: 'info', text: 'Loading photo…' } };
@@ -46,7 +43,7 @@ export function scanReducer(state, action) {
       return {
         ...state,
         busy: false,
-        stage: STAGES.PREVIEW,
+        stage: STAGES.WORKSPACE,
         image: action.image,
         notice: {
           kind: 'success',

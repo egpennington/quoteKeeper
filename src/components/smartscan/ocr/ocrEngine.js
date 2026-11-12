@@ -6,6 +6,7 @@
 // returned box is mapped back to ORIGINAL photo pixels (EXIF-oriented).
 
 import { createWorker } from 'tesseract.js';
+import { rotatedSize, rotationMatrix } from '../workspace/viewport';
 
 export const OCR_MODELS = {
   best_int: { label: 'best_int', description: 'Tesseract.js default · ~2.9 MB' },
@@ -50,19 +51,28 @@ export function decodePhoto(file) {
   return createImageBitmap(file, { imageOrientation: 'from-image' });
 }
 
-/** Downscales (never upscales) to `size` px on the long edge and encodes PNG for OCR. */
-export async function prepareOcrInput(bitmap, size) {
+/**
+ * Downscales (never upscales) to `size` px on the long edge and encodes PNG for OCR.
+ * `rotation` (0/90/180/270, clockwise) turns the page first; returned boxes are
+ * then in rotated "page" pixels (see workspace/viewport.js).
+ */
+export async function prepareOcrInput(bitmap, size, rotation = 0) {
   const t0 = performance.now();
-  const scale = Math.min(1, size / Math.max(bitmap.width, bitmap.height));
-  const width = Math.round(bitmap.width * scale);
-  const height = Math.round(bitmap.height * scale);
+  const page = rotatedSize(bitmap.width, bitmap.height, rotation);
+  const scale = Math.min(1, size / Math.max(page.width, page.height));
+  const width = Math.round(page.width * scale);
+  const height = Math.round(page.height * scale);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(bitmap, 0, 0, width, height);
+  const [a, b, c, d, e, f] = rotationMatrix(rotation, bitmap.width, bitmap.height);
+  const sx = width / page.width;
+  const sy = height / page.height;
+  ctx.setTransform(a * sx, b * sy, c * sx, d * sy, e * sx, f * sy);
+  ctx.drawImage(bitmap, 0, 0);
   const blob = await new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not encode OCR input'))), 'image/png'),
   );
@@ -71,8 +81,8 @@ export async function prepareOcrInput(bitmap, size) {
     blob,
     width,
     height,
-    scaleX: bitmap.width / width,
-    scaleY: bitmap.height / height,
+    scaleX: page.width / width,
+    scaleY: page.height / height,
     prepMs: performance.now() - t0,
   };
 }

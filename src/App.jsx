@@ -50,16 +50,20 @@ export default function App() {
 
   return (
     <>
-      <header className="app-header">
-        <span>Signed in as {user.email}</span>
-        {/* Test accounts only: the installed PWA has no address bar for /#ocr-lab. */}
-        {isLabUser(user) && (
-          <button type="button" onClick={() => { window.location.hash = LAB_HASH; }}>
-            OCR Lab
-          </button>
-        )}
-        <button onClick={() => signOut(auth)}>Sign out</button>
-      </header>
+      {/* SmartScan is a full-screen photo workspace, so the account bar is hidden
+          while it's open. This only affects rendering; the session is unchanged. */}
+      {view !== 'scan' && (
+        <header className="app-header">
+          <span>Signed in as {user.email}</span>
+          {/* Test accounts only: the installed PWA has no address bar for /#ocr-lab. */}
+          {isLabUser(user) && (
+            <button type="button" onClick={() => { window.location.hash = LAB_HASH; }}>
+              OCR Lab
+            </button>
+          )}
+          <button onClick={() => signOut(auth)}>Sign out</button>
+        </header>
+      )}
 
       {view === 'library' ? (
         <QuoteLibrary onBack={() => setView('form')} />

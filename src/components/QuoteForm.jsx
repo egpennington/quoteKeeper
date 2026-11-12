@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import TagSelect from './TagSelect';
+import { persistQuote } from '../utils/quoteRecord';
 
 export default function QuoteForm({ onShowLibrary, onShowScan }) {
   const [quote, setQuote] = useState('');
@@ -14,17 +15,10 @@ export default function QuoteForm({ onShowLibrary, onShowScan }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newQuote = {
-      quote,
-      author,
-      source,
-      tags: selectedTags.map((tag) => tag.value),
-      notes,
-      createdAt: new Date().toISOString(),
-    };
+    const draft = { quote, author, source, tags: selectedTags, notes };
 
     try {
-      await addDoc(collection(db, 'quotes'), newQuote);
+      const newQuote = await persistQuote(draft, (record) => addDoc(collection(db, 'quotes'), record));
       console.log('Quote saved to Firebase:', newQuote);
       // Clear form (optional)
       setQuote('');
@@ -35,7 +29,6 @@ export default function QuoteForm({ onShowLibrary, onShowScan }) {
     } catch (err) {
       console.error('Error saving to Firebase:', err);
     }
-    console.log('quote', newQuote);
   };
 
   return (

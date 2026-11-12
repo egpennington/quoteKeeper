@@ -45,7 +45,7 @@ const tagOptions = [
   { value: 'reflection', label: 'Reflection' },
 ]
 
-export default function TagSelect({ selectedTags, setSelectedTags }) {
+export default function TagSelect({ selectedTags, setSelectedTags, ...selectProps }) {
   return (
     <CreatableSelect
       isMulti
@@ -53,6 +53,7 @@ export default function TagSelect({ selectedTags, setSelectedTags }) {
       value={selectedTags}
       onChange={setSelectedTags}
       placeholder="Select or type a tag..."
+      {...selectProps}
     />
   )
 }

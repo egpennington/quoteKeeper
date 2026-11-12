@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '../firebase';
 import CameraCapture from './smartscan/CameraCapture';
-import PhotoPreview from './smartscan/PhotoPreview';
 import PhotoSourcePicker from './smartscan/PhotoSourcePicker';
 import { STAGES, initialScanState, scanReducer } from './smartscan/scanModel';
 import {
@@ -12,10 +13,15 @@ import {
 } from './smartscan/imageUtils';
 import './smartscan/smartscan.css';
 
+// The workspace pulls in the OCR engine, so it downloads only when a photo is opened.
+const SmartScanWorkspace = lazy(() => import('./smartscan/workspace/SmartScanWorkspace'));
+
+// Writes one quote to the existing Firestore `quotes` collection (same shape as manual entry).
+const saveQuote = (record) => addDoc(collection(db, 'quotes'), record);
+
 const STEP_TEXT = {
   [STAGES.SOURCE]: 'Take or upload a clear, well-lit photo of a book page.',
   [STAGES.CAMERA]: 'Line up the page, then press Capture.',
-  [STAGES.PREVIEW]: 'Check that the text is sharp and readable.',
 };
 
 export default function SmartScan({ onBack }) {
@@ -125,12 +131,15 @@ export default function SmartScan({ onBack }) {
           />
         )}
 
-        {stage === STAGES.PREVIEW && image && (
-          <PhotoPreview
-            image={image}
-            onReplace={() => dispatch({ type: 'START_REPLACE' })}
-            onRemove={() => dispatch({ type: 'REMOVE_IMAGE' })}
-          />
+        {stage === STAGES.WORKSPACE && image && (
+          <Suspense fallback={<div className="ss-workspace ssw-loading">Opening photo…</div>}>
+            <SmartScanWorkspace
+              key={image.url}
+              image={image}
+              saveQuote={saveQuote}
+              onClose={() => dispatch({ type: 'REMOVE_IMAGE' })}
+            />
+          </Suspense>
         )}
       </div>
     </div>
