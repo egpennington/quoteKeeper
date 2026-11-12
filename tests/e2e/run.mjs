@@ -286,6 +286,16 @@ try {
   check('Manual quote entry saves the same document shape', JSON.stringify(Object.keys(w3)) === JSON.stringify(['quote', 'author', 'source', 'tags', 'notes', 'createdAt']) && w3.quote === 'Manual quote still works' && w3.author === 'Manual Author', JSON.stringify(w3));
   check('Manual form clears after save', (await ev(`document.querySelector('.quote-form .quote-textarea').value`)) === '');
 
+  // ---- Q Library: account header hidden ---------------------------------------
+  await click('.library-header-button');
+  await waitFor(`!!document.querySelector('.quote-library-container')`, 5000, 'Q Library');
+  check('Header (email + Sign out) hidden while Q Library is open', await ev(`!document.querySelector('.app-header') && ![...document.querySelectorAll('button')].some((x) => x.textContent.trim() === 'Sign out')`));
+  await waitFor(`document.querySelector('.quote-library-container').textContent.includes('Manual quote still works')`, 5000, 'library quotes');
+  check('Q Library still lists saved quotes, and opening it does not sign out', (await ev('window.__auth.signOutCalls')) === 0);
+  await click('.back-button');
+  await waitFor(`!!document.querySelector('.quote-form')`, 5000, 'main form');
+  check('Closing Q Library restores the header on the main screen', await ev(`document.querySelector('.app-header')?.textContent.includes('tester@example.test') && [...document.querySelectorAll('.app-header button')].some((x) => x.textContent.trim() === 'Sign out')`));
+
   // ---- Rotation -------------------------------------------------------------
   await ev(`[...document.querySelectorAll('button')].find((x) => x.textContent.includes('SmartScan')).click()`);
   await waitFor(`!!document.querySelector('.ss-source')`);
@@ -426,6 +436,12 @@ try {
   check('SmartScan’s OCR model (best_int) is served by the app', model.ok && model.bytes > 1_000_000, `${(model.bytes / 1048576).toFixed(1)} MB`);
   const fast = await ev(`fetch('/ocr/models/fast/eng.traineddata.gz').then(async (r) => ({ status: r.status, type: r.headers.get('content-type') || '', bytes: (await r.arrayBuffer()).byteLength }))`);
   check('The Lab-only "fast" model is no longer shipped', fast.status === 404 || /html/.test(fast.type) || fast.bytes < 100_000, JSON.stringify(fast));
+
+  // Last, because it ends the (mock) session: Sign out is still wired up.
+  await ev(`history.replaceState(null, '', location.pathname)`);
+  await ev(`[...document.querySelectorAll('.app-header button')].find((x) => x.textContent.trim() === 'Sign out').click()`);
+  await delay(100);
+  check('Sign out on the main screen still calls sign-out', (await ev('window.__auth.signOutCalls')) === 1);
 
   // ---- Hygiene ----------------------------------------------------------------
   const firebaseHosts = b.requests.filter((u) => /firestore\.googleapis|identitytoolkit|securetoken|firebaseio|firebaseapp|googleapis\.com\/(?!css)/.test(u));

@@ -7,7 +7,7 @@ npm run test:e2e          # against the dev server (fast; use while developing)
 npm run test:e2e:build    # against a real production build (run before a release)
 ```
 
-Expected output: one `PASS` / `FAIL` line per check, then `73/73 passed`. The exit code is 0 only if every check passes. A full run takes about 1–2 minutes on a desktop.
+Expected output: one `PASS` / `FAIL` line per check, then `77/77 passed`. The exit code is 0 only if every check passes. A full run takes about 1–2 minutes on a desktop.
 
 `test:e2e:build` runs the same checks against an actual `vite build` (minified code, hashed lazy chunks, production asset paths), written to `tests/e2e/.dist/` (gitignored) and served by Vite's preview server. It catches problems the dev server hides, such as OCR files or lazy chunks that fail to load once bundled. It leaves out the PWA plugin, so no service worker is involved.
 
@@ -41,11 +41,11 @@ Both must be free.
 - Test photos are the benchmark's **synthetic** pages (`benchmark/ocr/samples.js`: original text with exact word positions). No real book photos are used or stored.
 - Chrome runs with a throwaway profile in the system temp folder, deleted after the run.
 
-## What it checks (73)
+## What it checks (77)
 
 | Area | Checks |
 |---|---|
-| Header and loading | Email and Sign out shown on the main form and hidden in SmartScan, with no sign-out. OCR code not loaded until a photo is opened. OCR files served from the app's origin only |
+| Header and loading | Email and Sign out shown on the main form and hidden in SmartScan and Q Library, with no sign-out; restored on closing either. Sign out still calls sign-out. OCR code not loaded until a photo is opened. OCR files served from the app's origin only |
 | Workspace | Opens from an upload at original resolution (3024×4032). OCR completes. Fills the screen with no horizontal scroll. All controls on screen and ≥44 px. Zoom controls in one row in the bottom-right corner |
 | Zoom and alignment | Pinch zooms, and the word under the fingers stays put. Browser page zoom stays at 1. Overlay matches the photo at fit, after pinch, after button zoom, after rotation, and in landscape. The page can be dragged up past its bottom edge to clear the zoom controls |
 | Selection | Anchor on tap 1. Multi-line passage on tap 2 matches the ground truth exactly. Panel below the photo. Reverse selection. Immediate new selection. Two quick taps select without zooming. Clear |

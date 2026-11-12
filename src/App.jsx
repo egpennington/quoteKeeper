@@ -6,6 +6,7 @@ import LoginSplash from './components/LoginSplash';
 import QuoteForm from './components/QuoteForm';
 import QuoteLibrary from './components/QuoteLibrary';
 import SmartScan from './components/SmartScan';
+import { showsAccountHeader } from './utils/accountHeader';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -26,9 +27,9 @@ export default function App() {
 
   return (
     <>
-      {/* SmartScan is a full-screen photo workspace, so the account bar is hidden
-          while it's open. This only affects rendering; the session is unchanged. */}
-      {view !== 'scan' && (
+      {/* The account bar is shown on the main screen only, not in SmartScan or
+          Q Library. This only affects rendering; the session is unchanged. */}
+      {showsAccountHeader(view) && (
         <header className="app-header">
           <span>Signed in as {user.email}</span>
           <button onClick={() => signOut(auth)}>Sign out</button>
