@@ -1,0 +1,370 @@
+/* SmartScan: all rules are scoped under .smartscan.
+   Note: index.css has a global `button { width: 100%; text-align: left; border: 3px … }`
+   rule (from `.login input, button`), so SmartScan buttons reset those explicitly. */
+
+.smartscan {
+  box-sizing: border-box;
+  max-width: 600px;
+  color: #213547;
+}
+
+.smartscan *,
+.smartscan *::before,
+.smartscan *::after {
+  box-sizing: border-box;
+}
+
+/* ---- Header ------------------------------------------------------------ */
+
+.smartscan .ss-header {
+  gap: 12px;
+}
+
+.smartscan .ss-header .quote-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.smartscan .ss-back-button {
+  width: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid #d6dce0;
+  border-radius: 12px;
+  background: #f8fafb;
+  color: #203342;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.smartscan .ss-back-button:hover {
+  background: #edf2f5;
+}
+
+.smartscan .ss-back-button:focus-visible {
+  outline: 3px solid #83b8d5;
+  outline-offset: 2px;
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.smartscan .ss-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.smartscan .ss-heading {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+.smartscan .ss-instructions {
+  margin: 0;
+  color: #4b5563;
+}
+
+.smartscan .ss-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.smartscan .ss-center {
+  text-align: center;
+}
+
+/* Collapses to zero height when there is no message. */
+.smartscan .ss-messages {
+  display: flex;
+  flex-direction: column;
+}
+
+.smartscan .ss-messages:not(:has(.ss-notice)) {
+  margin-bottom: -1rem; /* cancel the parent gap while empty */
+}
+
+/* ---- Notices ----------------------------------------------------------- */
+
+.smartscan .ss-notice {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+}
+
+.smartscan .ss-notice--info {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #334155;
+}
+
+.smartscan .ss-notice--success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.smartscan .ss-notice--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* ---- Buttons ----------------------------------------------------------- */
+
+.smartscan .ss-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.smartscan .ss-btn {
+  width: 100%;
+  min-height: 44px; /* comfortable touch target */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.smartscan .ss-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.smartscan .ss-btn:focus-visible {
+  outline: 3px solid #83b8d5;
+  outline-offset: 2px;
+}
+
+.smartscan .ss-btn--primary {
+  background: #333;
+  color: #fff;
+}
+
+.smartscan .ss-btn--primary:hover:not(:disabled) {
+  background: #000;
+}
+
+.smartscan .ss-btn--secondary {
+  background: #fff;
+  color: #222;
+  border-color: #d3d9e0;
+}
+
+.smartscan .ss-btn--secondary:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.smartscan .ss-btn--danger {
+  background: #fff;
+  color: #b42318;
+  border-color: #f3c5bd;
+}
+
+.smartscan .ss-btn--danger:hover:not(:disabled) {
+  background: #fef3f2;
+  border-color: #e76f51;
+}
+
+.smartscan .ss-btn--text {
+  width: auto;
+  align-self: center;
+  min-height: 36px;
+  background: transparent;
+  color: #374151;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.smartscan .ss-btn--block {
+  width: 100%;
+}
+
+/* ---- Source picker ----------------------------------------------------- */
+
+.smartscan .ss-source {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.smartscan .ss-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.75rem 1rem;
+  border: 2px dashed #d3d9e0;
+  border-radius: 14px;
+  background: #fafbfc;
+  text-align: center;
+}
+
+.smartscan .ss-dropzone-icon {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.smartscan .ss-dropzone-text {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ---- Frame (camera + preview) ------------------------------------------ */
+
+.smartscan .ss-camera,
+.smartscan .ss-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.smartscan .ss-preview-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.smartscan .ss-frame {
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #111;
+}
+
+.smartscan .ss-video,
+.smartscan .ss-image {
+  display: block;
+  width: 100%;
+  max-height: min(65vh, 640px);
+  object-fit: contain;
+  background: #111;
+}
+
+.smartscan .ss-frame--camera {
+  min-height: 200px;
+  justify-content: center;
+}
+
+.smartscan .ss-frame-overlay {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: #f9fafb;
+  text-align: center;
+}
+
+.smartscan .ss-meta {
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  background: #1f2937;
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ---- Utilities --------------------------------------------------------- */
+
+.smartscan .ss-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ---- Responsive -------------------------------------------------------- */
+
+/* Narrow phones: tighter card, icon-only back button. */
+@media (max-width: 420px) {
+  .smartscan.quote-form-container {
+    padding: 0.85rem;
+    margin: 0.75rem auto;
+    border-radius: 0.85rem;
+  }
+
+  .smartscan .ss-back-text {
+    display: none;
+  }
+
+  .smartscan .ss-back-button {
+    padding: 10px 14px;
+  }
+
+  .smartscan .ss-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phones in landscape: short viewport, so place photo and controls side by side. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .smartscan.quote-form-container {
+    max-width: 900px;
+    margin: 0.5rem auto;
+  }
+
+  .smartscan .quote-form-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .smartscan .quote-icon {
+    height: 2.25rem;
+  }
+
+  .smartscan .ss-instructions {
+    display: none;
+  }
+
+  .smartscan .ss-video,
+  .smartscan .ss-image {
+    max-height: 62vh;
+  }
+
+  .smartscan .ss-preview {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .smartscan .ss-preview .ss-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .smartscan .ss-dropzone {
+    padding: 0.9rem;
+  }
+}
