@@ -26,6 +26,9 @@ dist-ssr
 # environment varibles
 .env
 
+# SmartScan OCR assets (prepared at build time by scripts/ocr-assets.mjs)
+public/ocr/
+
 # SmartScan OCR benchmark: downloaded models and any real book photos/results
 # (the repository is public; book pages are copyrighted)
 benchmark/ocr/public/

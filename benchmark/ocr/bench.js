@@ -3,7 +3,7 @@
 // and exported results contain numbers only (no images, no recognized text).
 
 import { createWorker } from 'tesseract.js';
-import { boxMetrics, errorRates } from './metrics.js';
+import { boxMetrics, errorRates } from '../../src/components/smartscan/ocr/metrics.js';
 import { SAMPLE_SPECS, renderSample } from './samples.js';
 
 const abs = (p) => new URL(p, location.href).href;
@@ -16,8 +16,8 @@ const coreParam = new URLSearchParams(location.search).get('core');
 const CORE_OVERRIDE = CORE_BUILDS.includes(coreParam) ? coreParam : null;
 
 const ASSETS = {
-  workerPath: abs('./vendor/worker.min.js'),
-  corePath: CORE_OVERRIDE ? abs(`./vendor/core/tesseract-core-${CORE_OVERRIDE}.wasm.js`) : abs('./vendor/core'),
+  workerPath: abs('./ocr/worker.min.js'),
+  corePath: CORE_OVERRIDE ? abs(`./ocr/core/tesseract-core-${CORE_OVERRIDE}.wasm.js`) : abs('./ocr/core'),
 };
 
 // Same SIMD probe Tesseract.js uses (wasm-feature-detect) to pick its core build.
@@ -30,9 +30,9 @@ const simd = async () => {
   }
 };
 const MODELS = {
-  fast: { label: 'fast (tessdata_fast)', langPath: abs('./models/fast') },
-  best_int: { label: 'best_int (Tesseract.js default)', langPath: abs('./models/best_int') },
-  best: { label: 'best (tessdata_best float)', langPath: abs('./models/best') },
+  fast: { label: 'fast (tessdata_fast)', langPath: abs('./ocr/models/fast') },
+  best_int: { label: 'best_int (Tesseract.js default)', langPath: abs('./ocr/models/best_int') },
+  best: { label: 'best (tessdata_best float)', langPath: abs('./ocr/models/best') },
 };
 
 const STORE_RESULTS = 'ocrbench.results.v1';
